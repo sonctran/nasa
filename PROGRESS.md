@@ -37,7 +37,7 @@ Checked 2026-11-13 by a subagent using HEAD/range requests and small GETs (≤ 5
 1. **Space Apps rules on early work: not verified.** Phase 0 (setup + planning) happens Friday, before the window opens Sat 9:00 a.m. I couldn't confirm whether the rules allow building before the event starts. **Son: please check the official rules / your local event.** The plan below starts real building (Phase 1) at Sat 9:00 a.m. to be safe.
 2. **Windows not tested here.** Claude Code runs in a Linux cloud container. Son should run the 3 README commands once on his PC to confirm `pytest` passes on Windows.
 3. **Cloud container is temporary.** Anything not committed and pushed is lost when the session ends. Raw data must be re-downloadable by `pipeline/download.py`.
-4. **GitHub push blocked (403).** Claude has no write access to `sonctran/nasa`. It failed twice, so I stopped. Fix: Son reconnects GitHub at https://claude.ai/connect-github and, if needed, installs the Claude GitHub App on the repo. Until then, commits exist only in this cloud session.
+4. ~~**GitHub push blocked (403).**~~ **Fixed 2026-11-13:** Son installed the Claude GitHub App. Branch `claude/serene-sagan-hlltkr` now pushes to `sonctran/nasa`.
 5. **Cost-model citations not yet readable.** Tobler and Minetti formulas and the Hassler dose numbers are behind bot checks. Phase 2 plan: try other open copies (author PDFs, NTRS, the bundle docs). If they can't be checked, use NASA NTRS Apollo EVA metabolic data where it is readable, and label anything unverified "assumption".
 6. **DONKI volume.** Covering 2021-2024 needs about 25 calls and a free personal api.nasa.gov key. Fallback (SPEC §5): replay one cached SEP event (the May-Jun 2024 window is already fetched).
 
