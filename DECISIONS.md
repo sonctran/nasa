@@ -30,3 +30,7 @@ One line per decision, with its reason. "Son" = owner decision. "Tech" = technic
 | T9 | "Plan mode" for Phase 0 means: no feature code until Son approves the plan. The skeleton, config stub and smoke tests are allowed. | The Phase 0 exit needs "skeleton committed" and "plan approved". |
 | T10 | Upgrade placement: **Robust plan** is built in Phase 2 with the Monte Carlo (§6.7). **Live re-plan** is built in Phase 3 on top of the HUD playback + Web Worker A*. | Each reuses a component that already exists. |
 | T11 | `tests/test_skeleton.py` checks that every `params.yaml` entry has exactly `value, unit, source_or_assumption, note`. | Enforces SPEC §6 and rule 1 automatically from day one. |
+| T12 | Topo source: HiRISE 1 m DTM via windowed `/vsicurl/` read (primary works). CTX 20 m stays as the fallback. | Range requests verified. The 1.8 GB file is never downloaded whole. |
+| T13 | Optical source: `soc_007` 25 cm ortho (tiled, LZW), reprojected to the DTM grid. Mars Trek WMTS is the fallback. | Tiled files make windowed reads fast. The `soc_006` equirectangular version is uncompressed strips (slow). |
+| T14 | Depot markers come from the PDS `sample_tube_locations.csv`, labeled **"rover position at drop"** unless Phase 1 finds true tube positions in the bundle. | The CSV gives the rover's location, not the tube's. Labeling it avoids overstating accuracy (rule 1). |
+| T15 | DONKI SEP events are labeled **"proxy (near-Earth detection)"** and used only for the SEP-alert replay. | They are not measured at Mars. |
