@@ -1,6 +1,47 @@
 # PROGRESS
 
-## Current status: Phase 0 (setup + plan): COMPLETE. Son approved the plan and cut order on 2026-11-13. Next: Phase 1, when Son says so.
+## Current status: Phase 1 (data pipeline): COMPLETE, waiting for Son to review the previews. Next: Phase 2 (planning engine), when Son says so.
+
+### Done in Phase 1 (Fri 2026-11-13, ~1 h 20 min)
+**One command rebuilds everything:** `python -m pipeline.run_all` (download → layers → web export → previews). Tested from an empty `data/raw/`.
+
+Code: `pipeline/common.py` (grid + coordinates), `download.py`, `crop.py`, `derive.py`, `layers.py`, `export_web.py`, `previews.py`, `run_all.py`. Sources and credits: `docs/DATA_SOURCES.md`.
+
+Data in hand (all real, all from the §5 **primary** sources, no fallbacks needed):
+| Layer | What we have |
+|---|---|
+| Elevation | HiRISE 1 m DTM, AOI window only (24.7 MB local; the 1.8 GB file is not downloaded) |
+| Slope, roughness, hillshade, no-go | derived on a 2 m grid (2000 × 2000) |
+| Base image | HiRISE 25 cm ortho → 1 m (2.6 MB JPEG) + 25 cm depot close-up |
+| Thermal | THEMIS day + night IR, ~81 m/px (**proxy**) |
+| Rover | 130 traverse segments, 181 waypoints in the AOI |
+| Depot | 10 tube-drop positions (rover position at drop), sols 653-690 |
+| Rover photos | 22 real photos (one per rover site, 22 of 24 sites), with per-image credit |
+| Space weather | 27 DONKI SEP events (May-Jun 2024), cached (**proxy**) |
+| Cross-check | CTX 20 m DTM |
+
+Web assets for Phase 3 (`site/assets/`): image overlays + `layers.json` manifest (bounds, units, label, legend, credit), a 10 m cost grid (`cost_grid.bin` + header, 1.44 MB), `vectors.json`, and the photos. **Total ~10 MB** (limit 40 MB).
+
+### Real measured numbers (from `data/processed/checks.json`)
+- AOI: 4 km × 4 km, 77.3726-77.4438° E, 18.4241-18.4916° N. Elevation −2578.96 to −2395.58 m. No data gaps (100 % valid).
+- Slope (2 m): median 4.16°, P90 13.19°, P99 26.96°, max 69.28°.
+- Roughness (2 m): median 0.021 m, P90 0.046 m, P99 0.094 m.
+- **No-go share: 3.49 %** of the 2 m grid (all from slope > 20°; roughness adds < 0.01 %). On the 10 m browser grid (P90 rule): 5.14 %.
+- **Placement check:** our DTM vs rover elevation at 181 waypoints: RMS **0.059 m** (depot: 0.015 m). This proves the crop and coordinates are right. It is *not* an independent accuracy test (see DECISIONS T26).
+- **Independent check:** HiRISE vs CTX DTM: mean −1.33 m, std 3.91 m (USGS reports ~0.4 m median over the whole mosaic, same sign).
+- Tests: **pytest 106 passed** (tilted-plane slope 0-60° in 4 directions and 3 cell sizes; crop bounds; reprojection puts values in the right place; true ground scale; roughness = 0 on planes; hillshade; no-go; web-asset consistency).
+- Timing: DTM window read ~40 s, ortho window ~55 s, layers ~8 s, export + previews ~15 s.
+
+### Phase 1 known issues
+1. **No-go thresholds are placeholders** (20°, 0.2 m). Phase 2 looks for a NASA EVA slope source (NASA-STD-3001 / HIDH). Roughness from a 1 m DTM can't see rocks, so it will mainly be a soft penalty.
+2. **Navcam photos look greenish**: raw, uncalibrated browse images. Phase 3 can prefer the colour Mastcam-Z ones for stop cards.
+3. **Site 9 photo shows part of the rover arm.** It's a real image; swap it if it's used on a stop card.
+4. Sites 35 and 38 have no photo that passes the filter.
+5. DTM mosaic seams ("blend40") were not inspected for artificial steps.
+6. Radiation dose numbers (Hassler 2014) are still not verified. Phase 2.
+
+### Phase 0 record
+
 
 ### Done in Phase 0 (Fri 2026-11-13)
 - Copied the spec from Google Drive (`MARTIAN_MAP_SPEC.md`, 20,192 bytes, same size as on Drive) to `SPEC.md`.
@@ -84,4 +125,4 @@ Cut first → last. The "Keep" list in SPEC §10 is unchanged.
 8. OR-Tools scheduling (cut last: priority #1; fallback = fixed stop order with timing)
 
 ## Next
-Phase 1, after Son approves this plan.
+Phase 2 (planning engine), after Son reviews the Phase 1 previews.

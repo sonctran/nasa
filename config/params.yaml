@@ -50,3 +50,92 @@ science_value:   # transparent rubric, 0-10 points, set by owner ("Ancient-life 
     unit: points
     source_or_assumption: owner-set
     note: "Rocks carried in by ancient rivers from outside the crater."
+
+# ---------------------------------------------------------------------------
+# Phase 1: study area, grids, terrain-derivative settings
+# ---------------------------------------------------------------------------
+aoi:
+  anchor_lon:
+    value: 77.408207
+    unit: deg E (planetocentric)
+    source_or_assumption: "PDS mars2020_sample_depot_three_forks, miscellaneous/sample_metadata/sample_tube_locations.csv"
+    note: "Mean rover longitude over the 10 tube-drop events. Projection centre and depot reference point."
+  anchor_lat:
+    value: 18.452829
+    unit: deg N (planetocentric)
+    source_or_assumption: "PDS mars2020_sample_depot_three_forks, miscellaneous/sample_metadata/sample_tube_locations.csv"
+    note: "Mean rover latitude over the 10 tube-drop events."
+  west_m:
+    value: -2000
+    unit: m (east of anchor)
+    source_or_assumption: owner-set
+    note: "AOI 4 km x 4 km (SPEC 5). Depot sits at local (2000, 1700). Includes the delta front, the delta-top climb (sols 708-760) and flat crater floor to the east."
+  east_m:
+    value: 2000
+    unit: m (east of anchor)
+    source_or_assumption: owner-set
+    note: "See west_m."
+  south_m:
+    value: -1700
+    unit: m (north of anchor)
+    source_or_assumption: owner-set
+    note: "See west_m."
+  north_m:
+    value: 2300
+    unit: m (north of anchor)
+    source_or_assumption: owner-set
+    note: "See west_m. Shifted north so the delta front and delta-top route fit."
+
+grid:
+  dtm_cell_m:
+    value: 1.0
+    unit: m
+    source_or_assumption: "USGS HiRISE DTM mosaic posting (1 m)"
+    note: "DTM is reprojected to the local grid at its own 1 m posting; roughness is computed here."
+  analysis_cell_m:
+    value: 2.0
+    unit: m
+    source_or_assumption: assumption
+    note: "SPEC allows 2-5 m. 2 m keeps slope detail (Horn 3x3 = 6 m baseline) and stays fast (2000 x 2000 cells)."
+  web_cell_m:
+    value: 10.0
+    unit: m
+    source_or_assumption: assumption
+    note: "Browser cost grid (400 x 400 = 160,000 cells) so A* in a Web Worker can finish in < 1 s (SPEC 5). Speed is measured in Phase 3."
+  ortho_display_cell_m:
+    value: 1.0
+    unit: m
+    source_or_assumption: assumption
+    note: "25 cm orthomosaic averaged 4x4 -> 1 m for the base map (keeps the site small). Sharper 25 cm crops are kept for close-ups."
+
+terrain:
+  roughness_window_m:
+    value: 5
+    unit: m
+    source_or_assumption: assumption
+    note: "Window for detrended RMS relief on the 1 m DTM. Small enough to catch boulder fields and scarps, big enough to average DTM noise."
+  slope_nogo_deg:
+    value: 20
+    unit: deg
+    source_or_assumption: assumption
+    note: "Placeholder suited-walking slope limit. No NASA source verified yet (Phase 2 checks NASA-STD-3001 / HIDH). Exposed as a slider in the app."
+  roughness_nogo_m:
+    value: 0.2
+    unit: m RMS
+    source_or_assumption: assumption
+    note: "Placeholder, no source; slider in the app. Measured on this DTM: 0.095% of cells exceed 0.2 m and 84% of those are also > 20 deg slope (0.5 m flagged only 0.004%). A 1 m DTM cannot see rocks smaller than a few metres, so roughness mainly marks scarp edges and works best as a soft penalty (Phase 2)."
+  hillshade_azimuth_deg:
+    value: 315
+    unit: deg from north
+    source_or_assumption: assumption
+    note: "Display only. Standard cartographic light from the north-west."
+  hillshade_altitude_deg:
+    value: 45
+    unit: deg
+    source_or_assumption: assumption
+    note: "Display only."
+  web_aggregate_percentile:
+    value: 90
+    unit: percentile
+    source_or_assumption: assumption
+    note: "Each 10 m web cell keeps the 90th-percentile slope and roughness of its 25 analysis cells, so a cell that is partly steep still counts as steep (conservative)."
