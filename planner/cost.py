@@ -16,6 +16,9 @@ Energy per metre along the ground
 Speed (constant-power pacing, assumption)
     v(g) = min(v0, P0 / e(g))   ->  v0 on level ground and downhill, slower uphill.
     Walking power therefore never goes above P0. Edge time T = L_s / v(g).
+Alternative check model ("tobler_minetti", not the plan of record)
+    speed  = v0 * Tobler(g) / Tobler(0)        (Tobler 1993 shape, rescaled to 2 km/h)
+    energy = P0/v0 + (Mars/Earth gravity) * (Cw(g) - Cw(0)) * M   per metre (Minetti 2002 Cw)
 Hazard
     index h in [0, 1] per cell: 0 below the caution slope/roughness, rising linearly to 1
     at the no-go limit (slope from NASA's 20 deg, roughness 0.2 m). Edge hazard = T * mean h.
@@ -44,24 +47,39 @@ class HumanModel:
     gravity: float       # m/s^2
     eta: float           # uphill muscle efficiency
     down_credit: float   # fraction of released potential energy recovered downhill (0 = none)
+    kind: str = "nasa"   # "nasa" (plan of record) or "tobler_minetti" (alternative check)
+    tobler: tuple = (6.0, 3.5, 0.05)
+    minetti: tuple = (280.5, -58.7, -76.8, 51.9, 19.6, 2.5)
+    g_ratio: float = 3.710 / 9.798
 
     @classmethod
-    def from_params(cls, p: dict, gravity_key: str = "human_factors.mars_gravity_mps2") -> "HumanModel":
+    def from_params(cls, p: dict, gravity_key: str = "human_factors.mars_gravity_mps2", kind: str = "nasa") -> "HumanModel":
         mass = sum(pv(p, f"human_factors.{k}") for k in ("crew_body_mass_kg", "suit_mass_kg", "carried_kit_kg"))
         return cls(v0=pv(p, "human_factors.level_speed_mps"), p0=pv(p, "human_factors.level_metabolic_rate_w"),
                    mass=mass, gravity=pv(p, gravity_key), eta=pv(p, "human_factors.uphill_muscle_efficiency"),
-                   down_credit=pv(p, "human_factors.downhill_energy_credit"))
+                   down_credit=pv(p, "human_factors.downhill_energy_credit"), kind=kind,
+                   tobler=tuple(pv(p, "human_factors.tobler_hiking_function")),
+                   minetti=tuple(pv(p, "human_factors.minetti_walk_coeffs")),
+                   g_ratio=pv(p, gravity_key) / pv(p, "human_factors.earth_gravity_mps2"))
 
     # --- per-grade functions (numpy-friendly) ------------------------------------------
     def e_per_m(self, g):
         """Metabolic energy per metre along the ground, J/m."""
         g = np.asarray(g, float)
+        if self.kind == "tobler_minetti":
+            gi = np.clip(g, -0.45, 0.45)                  # Minetti's tested range
+            extra = np.polyval(self.minetti, gi) - np.polyval(self.minetti, 0.0)
+            return self.p0 / self.v0 + self.g_ratio * extra * self.mass
         sin_t = g / np.sqrt(1.0 + g * g)
         lift = self.mass * self.gravity * sin_t
         return self.p0 / self.v0 + np.where(sin_t > 0, lift / self.eta, self.down_credit * lift)
 
     def speed(self, g):
         """Walking speed along the ground, m/s."""
+        if self.kind == "tobler_minetti":
+            a, b, c = self.tobler
+            g = np.asarray(g, float)
+            return self.v0 * np.exp(-b * np.abs(g + c)) / np.exp(-b * abs(c))
         return np.minimum(self.v0, self.p0 / self.e_per_m(g))
 
     def ground_length(self, g, horizontal_m):

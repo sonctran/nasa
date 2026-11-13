@@ -28,7 +28,7 @@ Two astronauts leave a habitat on the floor of Jezero Crater. They must pick up 
 
 ## 3. Walking cost model (human factors)
 
-We first planned to use Tobler's hiking function and Minetti et al. (2002). **Neither paper could be opened from this project** (both sites block automated access), and the spec forbids writing formulas from memory. So the model is built only from NASA numbers we read, plus clearly labelled assumptions (DECISIONS T27, T28).
+The plan of record uses NASA numbers plus a muscle-efficiency value from Minetti et al. (2002). A second model, built from Tobler (1993) and Minetti's energy curve, is run as an independent check (§3b). Both papers were read from PDFs Son supplied, because automated access was blocked (DECISIONS T27, T28).
 
 | Input | Value | Source |
 |---|---|---|
@@ -36,18 +36,25 @@ We first planned to use Tobler's hiking function and Minetti et al. (2002). **Ne
 | Walking metabolic rate *P₀* | 352 W | NASA BVAD (TP-2015-218570 Rev 2): xEMU average design rate. Apollo 14 walking traverses averaged 354 W (Waligora & Horrigan 1975, Table 4) |
 | Mars gravity *g* | 3.710 m/s² | BVAD Table 4-66 |
 | Moving mass *M* | 182.7 kg = 82.0 body + 90.7 suit (Apollo A7LB with PLSS) + 10 kit | BVAD Tables 4-67/4-68; kit = assumption |
-| Uphill muscle efficiency *η* | 0.25 | **assumption** |
+| Uphill muscle efficiency *η* | 0.243 | Minetti et al. 2002 p.1041: walking, slopes steeper than +0.15 (Earth); applied to all uphill grades (assumption) |
 
 **Energy per metre walked along the ground**
 
-- level or downhill: `e = P₀ / v₀ = 634 J/m` (no energy credit for going downhill: assumption)
+- level or downhill: `e = P₀ / v₀ = 634 J/m` (no energy credit for going downhill: assumption, cautious; on Earth Minetti measured the lowest cost at gradient −0.10)
 - uphill: `e = P₀ / v₀ + M · g · sin θ / η` (the extra work of lifting body and suit, θ = slope angle of the step)
 
 **Speed.** The crew paces itself so its metabolic power stays at *P₀* ("constant-power pacing", assumption): `v = min(v₀, P₀ / e)`. So 2.0 km/h on level ground and downhill, 1.4 km/h at a 10 % grade, 1.1 km/h at 20 %, 0.9 km/h at 30 %.
 
-**Check against Apollo 14.** With lunar gravity and Apollo 14's own pace (2.47 km/h) and mean rate (354 W), the model predicts the five uphill walking legs of EVA-2 (grades 4.5–11.3 %) at a mean of **2.12 km/h vs 2.13 km/h measured**, mean absolute error 0.33 km/h per leg (`config/apollo14_table4.csv`, transcribed from Waligora & Horrigan Table 4). Individual legs scatter a lot. The Apollo authors themselves found "a very poor correlation between traverse rate and metabolic rate", which fits a crew that keeps a fairly steady work rate.
+**Check against Apollo 14.** With lunar gravity and Apollo 14's own pace (2.47 km/h) and mean rate (354 W), the model predicts the five uphill walking legs of EVA-2 (grades 4.5–11.3 %) at a mean of **2.11 km/h vs 2.13 km/h measured**, mean absolute error 0.32 km/h per leg (`config/apollo14_table4.csv`, transcribed from Waligora & Horrigan Table 4). Individual legs scatter a lot. The Apollo authors themselves found "a very poor correlation between traverse rate and metabolic rate", which fits a crew that keeps a fairly steady work rate.
 
 **One consequence to know.** Under constant-power pacing, walking energy = *P₀* × walking time. So the **fastest route is also the lowest-energy route**. The real trade-off the planner shows is **time against hazard**. "Lowest-energy" is kept in the table, but it is the same route as "Fastest".
+
+### 3b. Alternative check model: Tobler + Minetti
+
+- Speed: `v = v₀ · T(S)/T(0)` with Tobler's `T(S) = 6·exp(−3.5·|S + 0.05|)` (Tobler 1993, p.4), rescaled so level = 2 km/h. That gives 2.0 km/h on the flat, 1.4 km/h at ±10 % to 20 %, 1.0 km/h at +20 % and 0.7 km/h at +30 %.
+- Energy per metre: `P₀/v₀ + (g_Mars/g_Earth)·(Cw(i) − Cw(0))·M`, with Minetti's `Cw = 280.5i⁵ − 58.7i⁴ − 76.8i³ + 51.9i² + 19.6i + 2.5` (Fig. 1). Scaling the grade term by gravity is an assumption. Unlike the main model, downhill is cheaper here (536 J/m at −20 % vs 634 level).
+- Both papers measured people on Earth, unsuited. The rescaling to a suited 2 km/h Mars pace is ours.
+- **Result:** the full ranking was re-run with this model. Its Robust plan is the **30-point plan** (depot, Wildcat Ridge, Hidden Harbor, Amalik): 282 min planned, **95.9 %** on time. The main model gives that same plan **94.96 %**, just under the 95 % bar (§6). So the two models disagree only about which side of the line the 30-point plan falls.
 
 **Work at stops.** Apollo lunar mean rates (Waligora & Horrigan, Table 2): geology-station work **283 W**; "overhead" work, which includes stowing samples, **312 W** (used for the depot pickup).
 
@@ -68,7 +75,7 @@ We first planned to use Tobler's hiking function and Minetti et al. (2002). **Ne
 - **Science value** = Son's rubric: fine-grained layered rock 10, delta layer sequence 6, transported boulders 4. Which category each site gets is our reading of the quoted PDS/NASA text (DECISIONS T30, for Son to review).
 - **Work times** (assumptions): depot pickup 50 min, fine-grained rock 45 min, layer sequence 30 min, boulders 20 min.
 - **Model.** A prize-collecting **Orienteering Problem**: start and end at the habitat, must visit the depot, choose optional stops to maximise points. Constraints: walking + work time ≤ time budget, and O₂ ≤ tank × (1 − 15 % reserve). Travel times come from the Balanced route between every pair of sites (Dijkstra, 8 × 8 matrix).
-- **Solver.** Google **OR-Tools CP-SAT** with a circuit constraint. It proves optimality: every plan is marked `OPTIMAL`, in 2–12 ms. The OR-Tools routing heuristic (guided local search) was tried first. It missed the true optimum on 2 of 10 random test cases, so it was replaced (DECISIONS T31). A test compares CP-SAT with brute force (all subsets × all orders) on 25 random instances, and they match.
+- **Solver.** Google **OR-Tools CP-SAT** with a circuit constraint. It proves optimality: every plan is marked `OPTIMAL`, in 3–16 ms. The OR-Tools routing heuristic (guided local search) was tried first. It missed the true optimum on 2 of 10 random test cases, so it was replaced (DECISIONS T31). A test compares CP-SAT with brute force (all subsets × all orders) on 25 random instances, and they match.
 - **SEP rule as a filter.** Stops more than 60 min (assumption) from the habitat's shelter are not offered to the optimiser. This removes the two delta-top stops (81 and 88 min away). Turning the rule off does not change the 6-hour optimum: the delta top is out of reach in 6 h anyway.
 
 ## 6. Robust plan (Monte Carlo + ranking)
@@ -79,37 +86,37 @@ We first planned to use Tobler's hiking function and Minetti et al. (2002). **Ne
 
 | Budget | Stops (in order) | Points | Planned | P(home on time & O₂ OK) |
 |---|---|---|---|---|
-| 252 min | depot, Hidden Harbor, Amalik | 20 | 230 min | 99.8 % |
-| 270 min | depot, Skinner Ridge, Wildcat Ridge, Amalik | 26 | 267 min | 98.2 % |
-| **288 min** | **Amalik, Hidden Harbor, Wildcat Ridge, depot** | **30** | **286 min** | **95.0 %** ← Robust plan |
-| 324–360 min | depot, Skinner Ridge, Wildcat Ridge, Hidden Harbor, Amalik | 36 | 317 min | 79.8 % ← Max-science plan |
+| 252 min | Amalik, Hidden Harbor, depot | 20 | 230 min | 99.8 % |
+| **270 min** | **Amalik, Wildcat Ridge, Skinner Ridge, depot** | **26** | **267 min** | **98.2 %** ← Robust plan |
+| 288 min | Amalik, Hidden Harbor, Wildcat Ridge, depot | 30 | 286 min | 94.96 % (just under 95 %) |
+| 324–360 min | Amalik, Hidden Harbor, Wildcat Ridge, Skinner Ridge, depot | 36 | 317 min | 79.7 % ← Max-science plan |
 
-The Robust plan only just meets the target: 95.02 % ± 0.15 % (1 standard error). Adding Skinner Ridge, only 23 m from Wildcat Ridge, earns +6 points for +31 min of planned time. But it drops the chance of getting home on time from 95 % to 80 %.
+**The 95 % line falls between the 26- and 30-point plans.** With the efficiency at 0.25 (before Minetti was verified), the 30-point plan scored 95.02 %. With the measured 0.243 it scores 94.96 % ± 0.15 %. The Tobler + Minetti check model gives it 95.9 % (§3b). Treat 26 vs 30 points as a close call for Son, not a clear answer. The app should show both. Going to 36 points is clearly risky (80 %).
 
-- **Tornado chart** (each input at its 10th and 90th percentile, the others at median; base 286 min). EVA length swings by: depot work time 39 min; walking speed 39 min; each 45-min science stop 36 min. Metabolic rate changes O₂ use (0.34–0.56 kg), not time. **Work time, not walking, drives the risk.** Walking is only 100 of the 286 planned minutes.
+- **Tornado chart** (each input at its 10th and 90th percentile, the others at median; base 267 min). EVA length swings by: depot work time 39 min; walking speed 38 min; Amalik and Wildcat Ridge work 36 min each; Skinner Ridge work 24 min. Metabolic rate changes O₂ use (0.32–0.53 kg), not time. **Work time, not walking, drives the risk.** Walking is only 97 of the 267 planned minutes.
 
 ## 7. Safety rules
 
-- **Walkback rule** (Apollo rule, Bellcomm 1969: "the crewmen shall be able to walk back to the LM on the consumables remaining"). One Dijkstra on the reversed graph gives, for every cell, the time and energy to walk home by the fastest safe route. At every 10 m cell of the plan we check two things. First, O₂ left minus O₂ to walk home stays at or above the 15 % reserve. Second, elapsed time plus walk-home time stays within 6 h. **Tightest point**: near the depot at 259 min, with a 26-min walk home. Margins there: **74 min** of time, and **32 % of the tank** of O₂ above the reserve.
-- **SEP shelter rule** (assumption: 60 min). The farthest point of the plan is **41 min** from the habitat. There are 0 violations.
-- **Consumables** at return (modeled): O₂ 0.43 kg used, **47 % left** (tank 0.823 kg = 8 h × 352 W, an xEMU-like assumption). Battery 230 Wh of 387.5 Wh used (Apollo PLSS battery; constant 48.4 W draw, assumption), **41 % left**.
-- **Radiation (proxy).** Curiosity RAD at Gale measured about 210 µGy/day (NASA PIA17600). For the 286-min EVA that gives **42 µGy** of absorbed dose. For context, the 20 May 2024 solar event would have given an astronaut **8,100 µGy** (NASA), about 39 days of background. Its time profile is not available, so no in-EVA SEP dose is modelled. The SEP replay in the app tests the shelter rule only.
+- **Walkback rule** (Apollo rule, Bellcomm 1969: "the crewmen shall be able to walk back to the LM on the consumables remaining"). One Dijkstra on the reversed graph gives, for every cell, the time and energy to walk home by the fastest safe route. At every 10 m cell of the plan we check two things. First, O₂ left minus O₂ to walk home stays at or above the 15 % reserve. Second, elapsed time plus walk-home time stays within 6 h. **Tightest point**: near the depot at 242 min, with a 25-min walk home. Margins there: **93 min** of time, and **36 % of the tank** of O₂ above the reserve.
+- **SEP shelter rule** (assumption: 60 min). The farthest point of the plan is **39 min** from the habitat. There are 0 violations.
+- **Consumables** at return (modeled): O₂ 0.41 kg used, **51 % left** (tank 0.823 kg = 8 h × 352 W, an xEMU-like assumption). Battery 215 Wh of 387.5 Wh used (Apollo PLSS battery; constant 48.4 W draw, assumption), **44 % left**.
+- **Radiation (proxy).** Curiosity RAD at Gale measured about 210 µGy/day (NASA PIA17600). For the 267-min EVA that gives **39 µGy** of absorbed dose. For context, the 20 May 2024 solar event would have given an astronaut **8,100 µGy** (NASA), about 39 days of background. Its time profile is not available, so no in-EVA SEP dose is modelled. The SEP replay in the app tests the shelter rule only.
 - **Go/No-Go**: 9 checks (time limit, 95 % on-time, both walkback checks, SEP reach, max slope, O₂ reserve, battery, tubes collected). **All pass** for the Robust plan.
 
-## 8. Route options for the Robust plan's stops
+## 8. Route options for the Robust plan's stops (Amalik, Wildcat Ridge, Skinner Ridge, depot)
 
 | Option | Distance | Walking | EVA total | Walk energy | Time on caution terrain | Hazard score | Max cell slope | Climb |
 |---|---|---|---|---|---|---|---|---|
-| Fastest (= Lowest-energy) | 3,172 m | 100.4 min | 285.4 min | 507 kcal | 15.6 min | 1.16 | 14.3° | 41 m |
-| Balanced (plan) | 3,174 m | 100.5 min | 285.5 min | 507 kcal | 6.8 min | 0.61 | 14.3° | 41 m |
-| Safest | 3,199 m | 101.4 min | 286.4 min | 512 kcal | 1.0 min | 0.13 | 12.6° | 42 m |
-| Shortest distance (naive) | 3,167 m | 101.4 min | 286.4 min | 512 kcal | 19.1 min | 1.64 | 16.3° | 50 m |
+| Fastest (= Lowest-energy) | 3,046 m | 97.0 min | 267.0 min | 490 kcal | 19.3 min | 2.51 | 19.8° | 42 m |
+| Balanced (plan) | 3,046 m | 97.1 min | 267.1 min | 490 kcal | 8.4 min | 0.94 | 15.7° | 43 m |
+| Safest | 3,116 m | 99.0 min | 269.0 min | 500 kcal | 1.7 min | 0.22 | 12.6° | 42 m |
+| Shortest distance (naive) | 3,038 m | 98.0 min | 268.0 min | 495 kcal | 18.6 min | 2.46 | 19.8° | 52 m |
 
-"Caution terrain" = cells with hazard index > 0 (slope > 10° or roughness > 0.05 m). Hazard score = minutes weighted by the hazard index. **Finding:** compared with Fastest, the Safest route costs only +0.9 min and +27 m, but cuts time on caution terrain from 15.6 to 1.0 min. The naive shortest route is not faster: it climbs 9 m more and spends 19 min on caution terrain.
+"Caution terrain" = cells with hazard index > 0 (slope > 10° or roughness > 0.05 m). Hazard score = minutes weighted by the hazard index. **Finding:** compared with Fastest, the Safest route costs only +2.0 min and +70 m, but cuts time on caution terrain from 19.3 to 1.7 min and keeps every cell under 12.6° (Fastest touches 19.8°). The naive shortest route is not faster: it climbs 10 m more and is 1 min slower.
 
 ## 9. Validation
 
-- **Slope check.** The plan's steepest 10 m cell is 14.3° (limit 20°). On the finer 2 m grid along the route: median 3.2°, 95th percentile 8.9°, max 17.4°, with 0 % of points above 20°.
+- **Slope check.** The plan's steepest 10 m cell is 15.7° (limit 20°). On the finer 2 m grid along the route: median 2.7°, 95th percentile 8.8°, max 20.01°, with 0.07 % of points just above 20° (near Skinner Ridge; the 10 m grid smooths them).
 - **Against Perseverance's real drives** (a rover is not a human: supporting evidence only). Our Balanced planner (human limits) routes between the same two waypoints, and we measure how much of the planned path lies near the rover's actual traverse. The naive straight line is the baseline.
 
 | Drive | Rover | Planned | Planned within 25 m of rover | Straight line within 25 m | Median offset (planned / straight) |
@@ -124,9 +131,9 @@ On the crater floor the planner follows the rover clearly better than a straight
 ## 10. Limitations (honest list)
 
 1. **Walking model on Mars is extrapolated.** Speed and metabolic inputs are lunar or design values. NASA's EVA Walkback Test reports that Mars gravity "required higher metabolic rates than Moon gravity", but its Mars numbers are only in charts we could not read. So our O₂ use is probably low. The Monte Carlo metabolic spread covers only part of that.
-2. Tobler and Minetti could not be verified, so a simpler physics model is used. Muscle efficiency (0.25), constant-power pacing and no downhill credit are assumptions.
+2. Both walking models are Earth/lunar data stretched to Mars. Constant-power pacing, no downhill credit, applying Minetti's 0.243 efficiency to all uphill grades, and the gravity scaling in the check model are assumptions.
 3. Suit mass is the Apollo A7LB system. The O₂ tank is sized like xEMU (8 h at 352 W). No verified Mars suit numbers exist.
-4. Work times, the 60-min SEP shelter limit, the 15 % O₂ reserve and the Monte Carlo spreads are assumptions. The Robust plan sits right at its 95 % target, so small changes can flip it to the 26-point plan.
+4. Work times, the 60-min SEP shelter limit, the 15 % O₂ reserve and the Monte Carlo spreads are assumptions. The 30-point plan sits right on the 95 % line (94.96 % vs 95.9 % depending on the walking model), so the 26- vs 30-point choice is a close call.
 5. Radiation is a Gale-crater proxy, absorbed dose only. The habitat's shielding is not modelled.
 6. The 10 m grid with P90 aggregation smooths small obstacles. The 2 m check above shows no point steeper than 20°, but rocks below DTM resolution are invisible.
 7. Depot tube positions are the rover's position at each drop, not the tube itself. Pickup is one 50-min task at the depot centre.

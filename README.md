@@ -6,7 +6,7 @@ NASA Space Apps Challenge 2026 · Challenge: *Interplanetary Survival Guide: Mar
 
 > Status: **Phase 2 (planning engine) done.** Real NASA/USGS data is processed into map layers. The planner picks the stops and the route and scores the risk. The web app comes next. See `PROGRESS.md` and `docs/METHODS.md`.
 
-**Phase 2 results (modeled):** the recommended plan visits 3 real Perseverance sample sites plus the Three Forks depot: 30 science points, 3.2 km, 286 of 360 min. It gets home on time in **95.0 %** of 20,000 Monte Carlo runs, and all 9 go/no-go checks pass. Adding one more stop (+6 points) drops that to 80 %. Stop order is solved to proven optimality with OR-Tools CP-SAT.
+**Phase 2 results (modeled):** the recommended plan visits 3 real Perseverance sample sites plus the Three Forks depot: 26 science points, 3.0 km, 267 of 360 min. It gets home on time in **98.2 %** of 20,000 Monte Carlo runs, and all 9 go/no-go checks pass. A 30-point plan sits right on the 95 % safety bar (94.96 % to 95.9 %, depending on the walking model). Stop order is solved to proven optimality with OR-Tools CP-SAT.
 
 ## Run it locally (Windows PowerShell)
 

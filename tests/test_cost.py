@@ -31,7 +31,7 @@ def test_uphill_is_slower_and_costlier_downhill_is_not_faster():
 def test_uphill_energy_by_hand():
     g = 0.10
     sin_t = g / math.sqrt(1 + g * g)
-    hand = 352 / 0.5556 + 182.7 * 3.710 * sin_t / 0.25
+    hand = 352 / 0.5556 + 182.7 * 3.710 * sin_t / 0.243
     assert HM.e_per_m(g) == pytest.approx(hand, rel=1e-9)
 
 
@@ -59,3 +59,17 @@ def test_scalar_weight_equals_length_on_flat_safe_ground():
     assert np.allclose(d[e.ok], e.length[e.ok])
     with pytest.raises(ValueError):
         scalar_weight(ec, 0, 0, 1.0)
+
+
+def test_alternative_model_uses_the_verified_tobler_and_minetti_formulas():
+    alt = HumanModel.from_params(P, kind="tobler_minetti")
+    # Tobler 1993 p.4: W = 6 exp(-3.5 |S + 0.05|) km/h -> 5.04 km/h on the flat; peak at S = -0.05
+    assert 6 * math.exp(-3.5 * 0.05) == pytest.approx(5.036, abs=1e-3)
+    assert alt.speed(0.0) == pytest.approx(alt.v0)                              # rescaled to the suited pace
+    assert alt.speed(-0.05) > alt.speed(0.0) > alt.speed(0.10)
+    assert alt.speed(0.10) / alt.speed(0.0) == pytest.approx(math.exp(-3.5 * 0.15) / math.exp(-3.5 * 0.05))
+    # Minetti 2002 Fig. 1: Cw(0) = 2.5 J/kg/m; Cw(0.1) by hand
+    cw = lambda i: 280.5 * i**5 - 58.7 * i**4 - 76.8 * i**3 + 51.9 * i**2 + 19.6 * i + 2.5
+    hand = 352 / 0.5556 + (3.710 / 9.798) * (cw(0.1) - 2.5) * 182.7
+    assert alt.e_per_m(0.1) == pytest.approx(hand, rel=1e-9)
+    assert alt.e_per_m(-0.1) < alt.e_per_m(0.0)                                 # downhill credit exists here

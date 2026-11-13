@@ -47,7 +47,7 @@ PROFILE_NAMES = {"fastest": "Fastest", "lowest_energy": "Lowest-energy", "safest
 class World:
     """Terrain + graph + cost model for one set of parameters."""
 
-    def __init__(self, params: dict):
+    def __init__(self, params: dict, kind: str = "nasa"):
         self.p = params
         self.t = load_terrain()
         self.slope_nogo = pv(params, "terrain.slope_nogo_deg")
@@ -56,7 +56,7 @@ class World:
                                pv(params, "hazard.roughness_caution_m"), self.rough_nogo)
         self.ok = passable_mask(self.t, self.slope_nogo, self.rough_nogo)
         self.edges = build_edges(self.t, self.ok, self.hz, math.tan(math.radians(self.slope_nogo)))
-        self.hm = HumanModel.from_params(params)
+        self.hm = HumanModel.from_params(params, kind=kind)
         self.ec = edge_costs(self.edges, self.hm)
         self.o2_per_j = pv(params, "consumables.o2_kg_per_mj") / 1e6
         self._cs = {}
@@ -525,26 +525,16 @@ def simplify_xy(xy, tol=0.01):
     return xy[keep]
 
 
-def main() -> dict:
-    T0 = time.perf_counter()
-    p = load_params()
-    world = World(p)
-    log = {"cells": world.t.n, "passable_share": float(world.ok.mean()), "edges": int(world.edges.ok.sum())}
-    sites, meta = build_sites(world, p)
+def rank_plans(world: World, sites, p, opts):
+    """Walk-home field, leg matrices, one optimal plan per time budget, Monte Carlo on each."""
     limit_s = pv(p, "mission.eva_time_limit") * 3600
     shelter_s = pv(p, "sep.shelter_time_limit_min") * 60
-    opts = {k: pv(p, f"route_options.{k}") for k in PROFILE_NAMES}
-
-    # walk-home field (fastest safe route home from every cell)
     home = walkback_field(world.edges, world.ec.time_s, world.ec.energy_j, sites[0]["idx"])
     for s in sites:
         s["walk_home_min"] = float(home["time_s"].flat[s["idx"]] / 60)
     eligible = [s["kind"] != "stop" or s["walk_home_min"] * 60 <= shelter_s for s in sites]
-
     M = {k: leg_matrix(world, sites, k, w) for k, w in opts.items()}
     Mb = M["balanced"]
-
-    # --- schedule: one optimal plan per time budget, each scored by Monte Carlo -------
     cands, seen = [], set()
     for frac in pv(p, "schedule.budget_fractions"):
         inst, keep = make_instance(world, sites, Mb, frac * limit_s, eligible)
@@ -570,7 +560,41 @@ def main() -> dict:
     maxsci = max(cands, key=lambda c: (c["value"], -c["planned_min"]))
     if robust is None:
         robust = max(cands, key=lambda c: c["p_success"])
+    return home, eligible, M, cands, robust, maxsci
+
+
+def alt_model_check(p, sites, opts) -> dict:
+    """Re-run the whole ranking with the Tobler (1993) + Minetti (2002) walking model."""
+    w2 = World(p, kind="tobler_minetti")
+    s2 = [dict(s) for s in sites]
+    home, _, M, cands, robust, maxsci = rank_plans(w2, s2, p, {"balanced": opts["balanced"]})
+    legs = tour_legs(M["balanced"], robust["order"])
+    return {"model": "Tobler 1993 speed shape + Minetti 2002 energy, gravity-scaled (alternative check)",
+            "speed_kmh_by_grade": {f"{g:+.2f}": round(float(w2.hm.speed(g) * 3.6), 2) for g in (-0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3)},
+            "energy_j_per_m_by_grade": {f"{g:+.2f}": round(float(w2.hm.e_per_m(g)), 1) for g in (-0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3)},
+            "robust_stops": robust["stops"], "robust_value": robust["value"], "robust_planned_min": robust["planned_min"],
+            "robust_p_success": robust["p_success"], "robust_walk_min": sum(l["time_s"] for l in legs) / 60,
+            "robust_walk_kcal": sum(l["energy_j"] for l in legs) / 4184,
+            "max_science_stops": maxsci["stops"], "max_science_value": maxsci["value"],
+            "max_science_p_success": maxsci["p_success"],
+            "candidates": [{k: c[k] for k in ("stops", "value", "planned_min", "p_success")} for c in cands]}
+
+
+def main() -> dict:
+    T0 = time.perf_counter()
+    p = load_params()
+    world = World(p)
+    log = {"cells": world.t.n, "passable_share": float(world.ok.mean()), "edges": int(world.edges.ok.sum())}
+    sites, meta = build_sites(world, p)
+    limit_s = pv(p, "mission.eva_time_limit") * 3600
+    shelter_s = pv(p, "sep.shelter_time_limit_min") * 60
+    opts = {k: pv(p, f"route_options.{k}") for k in PROFILE_NAMES}
+
+    home, eligible, M, cands, robust, maxsci = rank_plans(world, sites, p, opts)
+    Mb = M["balanced"]
     order = robust["order"]
+    alt = alt_model_check(p, sites, opts)
+    target = pv(p, "schedule.robust_p_on_time")
 
     # the same optimizer with the SEP rule switched off: what does the rule cost?
     inst, keep = make_instance(world, sites, Mb, limit_s, [True] * len(sites))
@@ -661,6 +685,7 @@ def main() -> dict:
                   "energy_j_per_m_by_grade": {f"{g:+.2f}": r1(world.hm.e_per_m(g), 1) for g in (-0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3)}},
         "sites": [site_out(s) for s in sites],
         "habitat_rule": meta["habitat"],
+        "alt_model_check": alt,
         "candidates": cands, "robust_plan": robust, "max_science_plan": maxsci, "without_sep_rule": nosep_info,
         "plan": {"order": [sites[k]["id"] for k in order], "value": robust["value"], "totals": tot_b,
                  "legs_xy": [simplify_xy(l["xy"]).round(1).tolist() for l in legs],
@@ -704,6 +729,9 @@ def summary_text(o: dict) -> str:
         lines.append(f"  {c['budget_min']:.0f} min -> {c['stops']} {c['value']} pts {c['planned_min']:.0f} min "
                      f"P={c['p_success']:.3f} [{c['solver_status']}, {c['solve_ms']:.0f} ms]")
     lines.append(f"ROBUST plan: {pl['order']} {pl['value']} pts; totals {json.dumps({k: round(v, 1) for k, v in pl['totals'].items()})}")
+    a = o["alt_model_check"]
+    lines.append(f"ALT model (Tobler+Minetti): robust {a['robust_stops']} {a['robust_value']} pts {a['robust_planned_min']:.0f} min P={a['robust_p_success']:.3f}; "
+                 f"walk {a['robust_walk_min']:.0f} min {a['robust_walk_kcal']:.0f} kcal; maxsci {a['max_science_value']} pts P={a['max_science_p_success']:.3f}; speeds {a['speed_kmh_by_grade']}")
     lines.append(f"without SEP rule: {o['without_sep_rule']}")
     lines.append(f"MC: P(on time)={mc['p_on_time']:.3f} P(success)={mc['p_success']:.4f} +/- {mc['p_success_se']:.4f} (1 s.e.) P50={mc['duration_min']['p50']:.0f} P95={mc['duration_min']['p95']:.0f} min")
     lines.append(f"tornado top: {[(r['input'], round(r['swing_min'], 1)) for r in mc['tornado']['rows'][:3]]}")

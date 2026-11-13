@@ -157,20 +157,35 @@ human_factors:
     source_or_assumption: "NASA/TP-2015-218570 Rev 2 (BVAD, 2022) p.135: 'The xEMU average design metabolic rate is 1.27 MJ/CM-h (352 W)'. https://ntrs.nasa.gov/api/citations/20210024855/downloads/BVAD_2.15.22-final.pdf"
     note: "Used as the level-walking rate at 2 km/h. Cross-check: Apollo 14 EVA-2 walking traverses averaged 354 W (CDR 1233, LMP 1318 x 10^3 J/h; Waligora & Horrigan 1975 Table 4). NASA reports Mars gravity needs higher rates than lunar (no numbers readable), so this may be low: the Monte Carlo spread covers part of that."
   uphill_muscle_efficiency:
-    value: 0.25
+    value: 0.243
     unit: "-"
-    source_or_assumption: assumption
-    note: "Share of metabolic energy that becomes lifting work when walking uphill. Typical textbook figure for positive muscle work; not checked against a paper in this project. Extra uphill energy = mass x g_Mars x height gained / efficiency."
+    source_or_assumption: "Minetti, Moia, Roi, Susta & Ferretti (2002), J Appl Physiol 93:1039-1046, doi:10.1152/japplphysiol.01177.2001, p.1041: mechanical efficiency 'For uphill slopes steeper than +0.15 ... 0.243 +/- 0.012 ... for walking'. Read from the PDF supplied by Son, 2026-11-13."
+    note: "Share of metabolic energy that becomes lifting work when walking uphill. Extra uphill energy = mass x g_Mars x height gained / efficiency. Measured on Earth, unsuited, for slopes > +0.15; we apply it at all uphill grades on Mars (assumption)."
   downhill_energy_credit:
     value: 0.0
     unit: "-"
     source_or_assumption: assumption
-    note: "Downhill costs the same energy per metre as level ground (no credit, no extra braking cost). Simple and slightly cautious on gentle slopes."
+    note: "Downhill costs the same energy per metre as level ground (no credit, no extra braking cost). Cautious: Minetti et al. (2002) measured walking cost on Earth at its lowest at gradient -0.10 (0.81 J/kg/m vs 1.64 level)."
   pacing_rule:
     value: constant_power
     unit: "-"
     source_or_assumption: assumption
     note: "Uphill the crew slows down so metabolic power stays at the level-walking rate; never faster than the level pace (also downhill). Checked against Apollo 14 traverse legs in METHODS.md."
+  tobler_hiking_function:
+    value: [6.0, 3.5, 0.05]
+    unit: "km/h, -, -  (W = a * exp(-b * |S + c|), S = dh/dx)"
+    source_or_assumption: "Tobler, W. (1993), 'Three presentations on geographical analysis and modeling', NCGIA Technical Report 93-1, p.4 (Figure II): 'W = 6 exp( -3.5 * abs(S + 0.05)) ... S is dh/dx = slope = tan(theta) ... velocity is given in km/hr'. Read from the PDF supplied by Son, 2026-11-13."
+    note: "Earth, unsuited, on footpaths. Used ONLY in the alternative model check (shape of speed vs grade, rescaled to the 2 km/h suited level pace)."
+  minetti_walk_coeffs:
+    value: [280.5, -58.7, -76.8, 51.9, 19.6, 2.5]
+    unit: "J kg^-1 m^-1, coefficients of i^5 ... i^0 (i = gradient)"
+    source_or_assumption: "Minetti et al. (2002), J Appl Physiol 93:1039-1046, Fig. 1 caption p.1041: 'Cw_i = 280.5i^5 - 58.7i^4 - 76.8i^3 + 51.9i^2 + 19.6i + 2.5 (R^2 = 0.999)'. Read from the PDF supplied by Son, 2026-11-13."
+    note: "Earth, unsuited, treadmill, gradients -0.45 to +0.45. Used ONLY in the alternative model check."
+  alt_model_gravity_scaling:
+    value: gravity_ratio
+    unit: "-"
+    source_or_assumption: assumption
+    note: "Alternative model: Mars cost per metre = level cost (352 W / 2 km/h) + (Cw(i) - Cw(0)) x (g_Mars / g_Earth) x moving mass. The extra cost of a grade is mostly lifting/braking body weight, so it is scaled by gravity."
   mars_gravity_mps2:
     value: 3.710
     unit: m/s^2

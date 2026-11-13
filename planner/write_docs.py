@@ -18,7 +18,7 @@ Every number the planner uses is listed here, in one of three groups:
 2. **Owner-set**: a mission-design choice made by Son (the project owner), not a fact about Mars.
 3. **Sourced**: a value read from a NASA/USGS/PDS document. The source column quotes where it came from. Some sourced values are lunar or Gale-crater numbers applied to Jezero: their notes say so, and the app labels them **"proxy"** where that applies.
 
-Sources that could **not** be read (bot checks) and are therefore **not used**: Tobler (1993) hiking function; Minetti et al. (2002) walking-energy polynomial; the dose-equivalent numbers of Hassler et al. (2014). See DECISIONS T27.
+Tobler (1993) and Minetti et al. (2002) were blocked for automated access and were read from PDFs supplied by Son (2026-11-13). The dose-equivalent numbers of Hassler et al. (2014) could not be read and are **not used**. See DECISIONS T27.
 """
 
 

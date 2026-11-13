@@ -2,39 +2,39 @@
 
 ## Current status: Phase 2 (planning engine): COMPLETE. Next: Phase 3 (web app), when Son says so.
 
-### Done in Phase 2 (Fri 2026-11-13, ~2 h 45 min)
+### Done in Phase 2 (Fri 2026-11-13, ~3 h 15 min incl. the paper update)
 **One command:** `python -m planner.run_plan` (about 11 s). It writes `site/assets/data/plan.json` (81 KB, for the app), `data/processed/plan_full.json`, previews `data/processed/previews/20_plan_map.png`, `21_plan_charts.png`, `22_validation_rover.png`, and regenerates `docs/ASSUMPTIONS.md` from `config/params.yaml`.
 
 Code (`planner/`): `grid.py` (10 m browser grid, 16-connected moves, no corner cutting), `cost.py` (walking time/energy/hazard), `astar.py` (A* + Dijkstra helpers), `stops_ortools.py` (OR-Tools CP-SAT orienteering + brute-force checker), `montecarlo.py` (20,000-run risk model + tornado), `safety.py` (walk-home field, O2), `validate.py` (vs rover traverse), `run_plan.py` (everything end to end), `plots.py`, `write_docs.py`. Config: `config/stops.yaml` (6 real science sites with quotes), `config/apollo14_table4.csv`. Docs: `docs/METHODS.md`, `docs/ASSUMPTIONS.md` (generated), new Phase 2 section in `docs/DATA_SOURCES.md`, DECISIONS T27-T38.
 
+### Phase 2 update (Fri 2026-11-13, after Son supplied the two papers)
+- Read Tobler (1993, p.4) and Minetti et al. (2002, Fig. 1 and p.1041) from Son's PDFs, and checked the formulas against the pages.
+- Uphill muscle efficiency 0.25 (assumption) → **0.243** (Minetti, measured for walking). Tobler + Minetti added as a second walking model, used as a check (DECISIONS T39).
+- This flipped the recommendation, as known issue 3 warned: the 30-point plan now scores 94.96 % (bar: 95 %).
+
 ### Phase 2 results (plain English, all MODELED; real numbers from `plan.json`)
-- **The recommended ("Robust") plan:** Habitat → Amalik → Hidden Harbor → Wildcat Ridge → Three Forks depot (pick up the 10 tubes) → Habitat. **30 science points, 3.17 km, 286 min planned** (100 min walking + 185 min work) out of a 6 h (360 min) limit.
-- **Chance of getting home on time** (with O2 above the reserve): **95.0 %** (± 0.15 %, 20,000 Monte Carlo runs). This *just* meets Son's 95 % target. Median EVA 293 min, P95 354 min.
-- **The trade-off:** adding Skinner Ridge (+6 points, only 23 m from Wildcat Ridge) gives the 36-point "Max-science" plan: 317 min planned, but only **79.8 %** chance of getting home on time. A smaller plan (depot, Skinner Ridge, Wildcat Ridge, Amalik: 26 points, 267 min) gets home on time in 98.2 % of runs.
-- **What drives the risk:** work time, not walking. Tornado swing on EVA length: depot work 39 min, walking speed 39 min, each science stop 36 min.
-- **Route options for the same stops:** Fastest 285.4 min, Balanced 285.5 min, Safest 286.4 min, Shortest-distance 286.4 min. The Safest route costs +0.9 min and +27 m versus Fastest, but cuts time on caution terrain (slope > 10° or rough) from **15.6 to 1.0 min**. Fastest = Lowest-energy in this model (see DECISIONS T32). Pareto sweep: 12 distinct non-dominated routes.
-- **Tightest reserve point:** near the depot, 259 min into the EVA, 26 min walk from home. Margins there: **74 min** of time, and **32 % of the O2 tank** above the 15 % reserve. At return: 47 % O2 and 41 % battery left (modeled).
-- **SEP shelter rule (60 min, assumption):** the farthest point of the plan is 41 min from the habitat, so there are 0 violations. The two delta-top stops (81 and 88 min away) are excluded. Without the rule, the 6 h optimum doesn't change.
-- **Radiation (Gale proxy):** 42 µGy absorbed for the EVA (210 µGy/day). The 20 May 2024 solar event would have been 8,100 µGy (NASA).
-- **Go/No-Go:** all 9 checks pass.
+- **Recommended ("Robust") plan:** Habitat → Amalik → Wildcat Ridge → Skinner Ridge → Three Forks depot (pick up the 10 tubes) → Habitat. **26 points, 3.05 km, 267 min planned** (97 walking + 170 work) of 360. **98.2 %** get home on time (20,000 runs). Median 274 min, P95 331 min.
+- **Close call, Son's judgement:** the 30-point plan (Amalik, Hidden Harbor, Wildcat Ridge, depot; 286 min) scores **94.96 %** with the main model and **95.9 %** with the Tobler + Minetti check model. It sits right on the 95 % line. The 36-point plan is clearly risky (79.7 %).
+- **What drives risk:** work time, not walking (tornado: depot work 39 min, walking speed 38 min, each 45-min stop 36 min).
+- **Route options (same stops):** Fastest 267.0 min, Balanced 267.1, Safest 269.0, Shortest-distance 268.0. Safest: +2 min, +70 m, but caution-terrain time goes from 19.3 to 1.7 min and the max cell slope from 19.8° to 12.6°. Fastest = Lowest-energy (T32). 14 distinct Pareto routes.
+- **Tightest reserve point:** near the depot, 242 min in, 25 min from home. Margins: **93 min** of time and **36 % of the O₂ tank** above the reserve. At return: 51 % O₂, 44 % battery.
+- **SEP rule (60 min):** farthest point 39 min from shelter, 0 violations. Delta-top stops excluded (81 and 88 min).
+- **Radiation (Gale proxy):** 39 µGy for the EVA; the May 2024 event would have been 8,100 µGy.
+- **Go/No-Go:** all 9 pass.
 - **Validation:**
-  - A* = Dijkstra exactly (0.0 relative difference on all 5 legs).
-  - CP-SAT = brute force on 25 random cases; every real plan was proven optimal in 2-12 ms.
-  - Max cell slope on the route is 14.3° (10 m grid); on the 2 m grid the max is 17.4°, with 0 % above 20°.
-  - Rover drives: crater floor → delta front, **53 %** of the planned path is within 25 m of Perseverance's real path (straight line 38 %). Delta-top climb: 36 % (straight line 30 %): **inconclusive**.
-  - Walking model vs Apollo 14 uphill legs: 2.12 vs 2.13 km/h mean.
-- **Tests: pytest 161 passed** (was 106). New: A* vs networkx on 12 random grids; A* vs scipy on the real grid; CP-SAT vs brute force on 25 instances; the cost model by hand; plan.json consistency (timeline continuous, totals add up, route joins the sites, rubric scores, 1 m DTM within 0.5 m of PDS core elevations).
+  - A* = Dijkstra exactly; CP-SAT = brute force on 25 cases; every plan solved to proven optimality in 3–16 ms.
+  - Slope: 10 m max 15.7°. On the 2 m grid the max is 20.01°, with 0.07 % of points just over 20° (near Skinner Ridge).
+  - Rover drives: crater floor 53 % within 25 m (straight line 38 %); delta-top 36 % (straight 30 %): inconclusive.
+  - Apollo 14 uphill speeds: model 2.11 vs measured 2.13 km/h.
+- **Tests: pytest 162 passed.**
 
 ### Phase 2 known issues (for Son)
-1. **Tobler and Minetti could not be verified** (bot checks), so they are not used. The walking model uses NASA numbers plus 3 labelled assumptions (muscle efficiency 0.25, constant-power pacing, no downhill credit). If Son can open the two papers in a browser, we can add them as a second model (Phase 4).
-2. **Mars walking cost is probably underestimated.** The inputs are lunar/design values, and NASA reports higher rates in Mars gravity (charts only). The Monte Carlo spread covers part of this.
-3. **The Robust plan is borderline** (95.0 % vs a 95 % target). Small parameter changes can flip the recommendation to the 26-point plan (98.2 %). The app should show both.
-4. **Son should review the science categories** given to the 6 sites (DECISIONS T30) and the assumed work times (45/30/20 min, depot 50 min).
-5. Many safety values are assumptions: SEP 60 min, O2 reserve 15 %, O2 tank 0.823 kg, battery draw. All are listed in ASSUMPTIONS.md, and the app will expose the key ones as sliders.
-6. The delta-top rover comparison is inconclusive (see METHODS §9).
-7. Radiation: absorbed dose only (the mSv numbers could not be verified). No SEP dose is modelled during the EVA.
-8. DONKI has no cached 20 May 2024 entry (API rate limit, HTTP 429). The SEP replay can use a cached May 2024 near-Earth event (proxy), or retry with a personal api.nasa.gov key.
-9. Skinner Ridge's core site cell is not passable on the 10 m grid, so the stop sits on the nearest safe cell, 11.6 m away. All other sites are ≤ 7.1 m away.
+1. **26 vs 30 points is a close call** (see above). The rule picks 26 today. Decide whether 95 % is the right bar, or let the app show both.
+2. **Mars walking cost is probably underestimated.** Inputs are lunar, Earth or design values, and NASA reports higher rates in Mars gravity (charts only).
+3. **Please review** the science categories of the 6 sites (DECISIONS T30) and the work times (45/30/20 min, depot 50 min).
+4. Many safety values are assumptions (SEP 60 min, O₂ reserve 15 %, tank 0.823 kg, battery draw). All are listed in ASSUMPTIONS.md.
+5. Delta-top rover comparison inconclusive. Radiation is absorbed dose only. DONKI has no cached 20 May 2024 entry (HTTP 429).
+6. Skinner Ridge stop sits 11.6 m from its core site (nearest safe 10 m cell); 0.07 % of 2 m route points are just over 20°.
 
 ### Phase 1 record (data pipeline: COMPLETE)
 
