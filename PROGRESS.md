@@ -26,11 +26,11 @@ Web assets for Phase 3 (`site/assets/`): image overlays + `layers.json` manifest
 - AOI: 4 km × 4 km, 77.3726-77.4438° E, 18.4241-18.4916° N. Elevation −2578.96 to −2395.58 m. No data gaps (100 % valid).
 - Slope (2 m): median 4.16°, P90 13.19°, P99 26.96°, max 69.28°.
 - Roughness (2 m): median 0.021 m, P90 0.046 m, P99 0.094 m.
-- **No-go share: 3.49 %** of the 2 m grid (all from slope > 20°; roughness adds < 0.01 %). On the 10 m browser grid (P90 rule): 5.14 %.
+- **No-go share: 3.50 %** of the 2 m grid (slope > 20°: 3.49 %; roughness > 0.2 m: 0.10 %, and only 0.015 % from roughness alone). On the 10 m browser grid (P90 rule): 5.14 %.
 - **Placement check:** our DTM vs rover elevation at 181 waypoints: RMS **0.059 m** (depot: 0.015 m). This proves the crop and coordinates are right. It is *not* an independent accuracy test (see DECISIONS T26).
 - **Independent check:** HiRISE vs CTX DTM: mean −1.33 m, std 3.91 m (USGS reports ~0.4 m median over the whole mosaic, same sign).
 - Tests: **pytest 106 passed** (tilted-plane slope 0-60° in 4 directions and 3 cell sizes; crop bounds; reprojection puts values in the right place; true ground scale; roughness = 0 on planes; hillshade; no-go; web-asset consistency).
-- Timing: DTM window read ~40 s, ortho window ~55 s, layers ~8 s, export + previews ~15 s.
+- Timing: DTM window read 40 s (first run) / 213 s (clean rebuild, slower server); ortho window 55 s / 183 s; layers ~8 s; export + previews ~15 s. Clean rebuild from empty `data/raw/`: exit 0, identical numbers.
 
 ### Phase 1 known issues
 1. **No-go thresholds are placeholders** (20°, 0.2 m). Phase 2 looks for a NASA EVA slope source (NASA-STD-3001 / HIDH). Roughness from a 1 m DTM can't see rocks, so it will mainly be a soft penalty.

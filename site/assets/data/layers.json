@@ -1,0 +1,680 @@
+{
+  "crs": "local metres, origin at AOI south-west corner, x east, y north",
+  "aoi": {
+    "size_m": [
+      4000.0,
+      4000.0
+    ],
+    "anchor_lonlat": [
+      77.408207,
+      18.452829
+    ],
+    "anchor_local": [
+      2000.0,
+      1700.0
+    ],
+    "corners_lonlat": {
+      "west_lon": 77.37263694027182,
+      "south_lat": 18.424148971741204,
+      "east_lon": 77.44377705972819,
+      "north_lat": 18.491631391173666
+    },
+    "projection": "+proj=eqc +lat_ts=18.452829 +lat_0=18.452829 +lon_0=77.408207 +x_0=0 +y_0=0 +R=3396190 +units=m +no_defs=True"
+  },
+  "layers": [
+    {
+      "bounds": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          4000.0,
+          4000.0
+        ]
+      ],
+      "id": "ortho",
+      "title": "HiRISE image (base map)",
+      "file": "layers/ortho.jpg",
+      "kind": "real",
+      "units": "brightness (DN)",
+      "cell_m": 1.0,
+      "credit": "Orthomosaic: Fergason, Galuszka & Hare 2020, USGS, doi:10.5066/P9QJDP48. HiRISE data: NASA/JPL-Caltech/University of Arizona",
+      "processing": "25 cm mosaic averaged to 1 m, reprojected, linear stretch DN 26-212"
+    },
+    {
+      "bounds": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          4000.0,
+          4000.0
+        ]
+      ],
+      "id": "elevation",
+      "title": "Elevation",
+      "file": "layers/elevation.png",
+      "kind": "real",
+      "units": "m (areoid)",
+      "cell_m": 2.0,
+      "credit": "DTM mosaic: Fergason, Galuszka & Hare 2020, USGS, doi:10.5066/P9REJ9JN. HiRISE data: NASA/JPL-Caltech/University of Arizona",
+      "legend": [
+        {
+          "value": -2578.96,
+          "color": "#00224e"
+        },
+        {
+          "value": -2573.2293,
+          "color": "#00285b"
+        },
+        {
+          "value": -2567.4987,
+          "color": "#002e6a"
+        },
+        {
+          "value": -2561.7681,
+          "color": "#053371"
+        },
+        {
+          "value": -2556.0375,
+          "color": "#1c396f"
+        },
+        {
+          "value": -2550.3069,
+          "color": "#293f6e"
+        },
+        {
+          "value": -2544.5762,
+          "color": "#33446d"
+        },
+        {
+          "value": -2538.8456,
+          "color": "#3c4a6c"
+        },
+        {
+          "value": -2533.115,
+          "color": "#45506c"
+        },
+        {
+          "value": -2527.3844,
+          "color": "#4d556c"
+        },
+        {
+          "value": -2521.6537,
+          "color": "#555b6d"
+        },
+        {
+          "value": -2515.9231,
+          "color": "#5c616e"
+        },
+        {
+          "value": -2510.1925,
+          "color": "#646770"
+        },
+        {
+          "value": -2504.4619,
+          "color": "#6b6d72"
+        },
+        {
+          "value": -2498.7313,
+          "color": "#727274"
+        },
+        {
+          "value": -2493.0006,
+          "color": "#787877"
+        },
+        {
+          "value": -2487.27,
+          "color": "#807f78"
+        },
+        {
+          "value": -2481.5394,
+          "color": "#888578"
+        },
+        {
+          "value": -2475.8088,
+          "color": "#908b78"
+        },
+        {
+          "value": -2470.0782,
+          "color": "#979177"
+        },
+        {
+          "value": -2464.3475,
+          "color": "#a09875"
+        },
+        {
+          "value": -2458.6169,
+          "color": "#a89e73"
+        },
+        {
+          "value": -2452.8863,
+          "color": "#b0a571"
+        },
+        {
+          "value": -2447.1557,
+          "color": "#b9ab6d"
+        },
+        {
+          "value": -2441.425,
+          "color": "#c2b369"
+        },
+        {
+          "value": -2435.6944,
+          "color": "#cbb965"
+        },
+        {
+          "value": -2429.9638,
+          "color": "#d3c05f"
+        },
+        {
+          "value": -2424.2332,
+          "color": "#dcc859"
+        },
+        {
+          "value": -2418.5026,
+          "color": "#e6d051"
+        },
+        {
+          "value": -2412.7719,
+          "color": "#efd748"
+        },
+        {
+          "value": -2407.0413,
+          "color": "#f8df3c"
+        },
+        {
+          "value": -2401.3107,
+          "color": "#fee838"
+        }
+      ]
+    },
+    {
+      "bounds": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          4000.0,
+          4000.0
+        ]
+      ],
+      "id": "hillshade",
+      "title": "Hillshade",
+      "file": "layers/hillshade.png",
+      "kind": "derived",
+      "units": "-",
+      "cell_m": 2.0,
+      "credit": "DTM mosaic: Fergason, Galuszka & Hare 2020, USGS, doi:10.5066/P9REJ9JN. HiRISE data: NASA/JPL-Caltech/University of Arizona",
+      "processing": "Lambertian, sun azimuth 315 deg, altitude 45 deg"
+    },
+    {
+      "bounds": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          4000.0,
+          4000.0
+        ]
+      ],
+      "id": "slope",
+      "title": "Slope",
+      "file": "layers/slope.png",
+      "kind": "derived",
+      "units": "deg",
+      "cell_m": 2.0,
+      "credit": "DTM mosaic: Fergason, Galuszka & Hare 2020, USGS, doi:10.5066/P9REJ9JN. HiRISE data: NASA/JPL-Caltech/University of Arizona",
+      "legend": [
+        {
+          "value": 0.0,
+          "color": "#440154"
+        },
+        {
+          "value": 1.0,
+          "color": "#460a5d"
+        },
+        {
+          "value": 2.0,
+          "color": "#481467"
+        },
+        {
+          "value": 3.0,
+          "color": "#481c6e"
+        },
+        {
+          "value": 4.0,
+          "color": "#482576"
+        },
+        {
+          "value": 5.0,
+          "color": "#472d7b"
+        },
+        {
+          "value": 6.0,
+          "color": "#453581"
+        },
+        {
+          "value": 7.0,
+          "color": "#433d84"
+        },
+        {
+          "value": 8.0,
+          "color": "#404588"
+        },
+        {
+          "value": 9.0,
+          "color": "#3d4d8a"
+        },
+        {
+          "value": 10.0,
+          "color": "#3a538b"
+        },
+        {
+          "value": 11.0,
+          "color": "#375b8d"
+        },
+        {
+          "value": 12.0,
+          "color": "#34618d"
+        },
+        {
+          "value": 13.0,
+          "color": "#31688e"
+        },
+        {
+          "value": 14.0,
+          "color": "#2e6e8e"
+        },
+        {
+          "value": 15.0,
+          "color": "#2b748e"
+        },
+        {
+          "value": 16.0,
+          "color": "#297b8e"
+        },
+        {
+          "value": 17.0,
+          "color": "#26818e"
+        },
+        {
+          "value": 18.0,
+          "color": "#24878e"
+        },
+        {
+          "value": 19.0,
+          "color": "#228d8d"
+        },
+        {
+          "value": 20.0,
+          "color": "#20938c"
+        },
+        {
+          "value": 21.0,
+          "color": "#1f998a"
+        },
+        {
+          "value": 22.0,
+          "color": "#1fa088"
+        },
+        {
+          "value": 23.0,
+          "color": "#21a585"
+        },
+        {
+          "value": 24.0,
+          "color": "#25ac82"
+        },
+        {
+          "value": 25.0,
+          "color": "#2db27d"
+        },
+        {
+          "value": 26.0,
+          "color": "#35b779"
+        },
+        {
+          "value": 27.0,
+          "color": "#40bd72"
+        },
+        {
+          "value": 28.0,
+          "color": "#4cc26c"
+        },
+        {
+          "value": 29.0,
+          "color": "#5ac864"
+        },
+        {
+          "value": 30.0,
+          "color": "#67cc5c"
+        },
+        {
+          "value": 31.0,
+          "color": "#77d153"
+        },
+        {
+          "value": 32.0,
+          "color": "#89d548"
+        },
+        {
+          "value": 33.0,
+          "color": "#98d83e"
+        },
+        {
+          "value": 34.0,
+          "color": "#aadc32"
+        },
+        {
+          "value": 35.0,
+          "color": "#bade28"
+        },
+        {
+          "value": 36.0,
+          "color": "#cde11d"
+        },
+        {
+          "value": 37.0,
+          "color": "#dde318"
+        },
+        {
+          "value": 38.0,
+          "color": "#efe51c"
+        },
+        {
+          "value": 39.0,
+          "color": "#fde725"
+        }
+      ],
+      "processing": "Horn (1981) 3x3 on the 2 m grid; values above 40 deg shown as 40"
+    },
+    {
+      "bounds": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          4000.0,
+          4000.0
+        ]
+      ],
+      "id": "roughness",
+      "title": "Roughness",
+      "file": "layers/roughness.png",
+      "kind": "derived",
+      "units": "m RMS",
+      "cell_m": 2.0,
+      "credit": "DTM mosaic: Fergason, Galuszka & Hare 2020, USGS, doi:10.5066/P9REJ9JN. HiRISE data: NASA/JPL-Caltech/University of Arizona",
+      "legend": [
+        {
+          "value": 0.0,
+          "color": "#000004"
+        },
+        {
+          "value": 0.01,
+          "color": "#030312"
+        },
+        {
+          "value": 0.02,
+          "color": "#0b0924"
+        },
+        {
+          "value": 0.03,
+          "color": "#150e38"
+        },
+        {
+          "value": 0.04,
+          "color": "#21114e"
+        },
+        {
+          "value": 0.05,
+          "color": "#2f1163"
+        },
+        {
+          "value": 0.06,
+          "color": "#3d0f71"
+        },
+        {
+          "value": 0.07,
+          "color": "#4c117a"
+        },
+        {
+          "value": 0.08,
+          "color": "#5a167e"
+        },
+        {
+          "value": 0.09,
+          "color": "#681c81"
+        },
+        {
+          "value": 0.1,
+          "color": "#762181"
+        },
+        {
+          "value": 0.11,
+          "color": "#842681"
+        },
+        {
+          "value": 0.12,
+          "color": "#912b81"
+        },
+        {
+          "value": 0.13,
+          "color": "#a02f7f"
+        },
+        {
+          "value": 0.14,
+          "color": "#ae347b"
+        },
+        {
+          "value": 0.15,
+          "color": "#bd3977"
+        },
+        {
+          "value": 0.16,
+          "color": "#cc3f71"
+        },
+        {
+          "value": 0.17,
+          "color": "#d9466b"
+        },
+        {
+          "value": 0.18,
+          "color": "#e44f64"
+        },
+        {
+          "value": 0.19,
+          "color": "#ee5b5e"
+        },
+        {
+          "value": 0.2,
+          "color": "#f56b5c"
+        },
+        {
+          "value": 0.21,
+          "color": "#f97b5d"
+        },
+        {
+          "value": 0.22,
+          "color": "#fc8c63"
+        },
+        {
+          "value": 0.23,
+          "color": "#fe9d6c"
+        },
+        {
+          "value": 0.24,
+          "color": "#feac76"
+        },
+        {
+          "value": 0.25,
+          "color": "#febd82"
+        },
+        {
+          "value": 0.26,
+          "color": "#fecd90"
+        },
+        {
+          "value": 0.27,
+          "color": "#fddea0"
+        },
+        {
+          "value": 0.28,
+          "color": "#fceeb0"
+        },
+        {
+          "value": 0.29,
+          "color": "#fcfdbf"
+        }
+      ],
+      "processing": "Detrended RMS relief, 5 m window on 1 m DTM, averaged to 2 m; above 0.3 m shown as 0.3"
+    },
+    {
+      "bounds": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          4000.0,
+          4000.0
+        ]
+      ],
+      "id": "nogo",
+      "title": "No-go zones",
+      "file": "layers/nogo.png",
+      "kind": "assumption",
+      "units": "-",
+      "cell_m": 2.0,
+      "credit": "DTM mosaic: Fergason, Galuszka & Hare 2020, USGS, doi:10.5066/P9REJ9JN. HiRISE data: NASA/JPL-Caltech/University of Arizona",
+      "color": "#d55e00",
+      "processing": "slope > 20 deg OR roughness > 0.2 m OR no data (thresholds are assumptions)"
+    },
+    {
+      "bounds": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          4000.0,
+          4000.0
+        ]
+      ],
+      "id": "themis_day",
+      "title": "THEMIS daytime IR",
+      "file": "layers/themis_day.png",
+      "kind": "proxy",
+      "units": "relative brightness",
+      "cell_m": 20.0,
+      "native_m_per_px": 81.4,
+      "credit": "THEMIS IR mosaic: NASA/JPL-Caltech/Arizona State University, via NASA Mars Trek",
+      "processing": "WMTS zoom 9 tile (~81 m/px), resampled to 20 m; stretch DN 99-185",
+      "note": "Qualitative mosaic, not calibrated temperature or thermal inertia. Proxy for loose vs. rocky ground."
+    },
+    {
+      "bounds": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          4000.0,
+          4000.0
+        ]
+      ],
+      "id": "themis_night",
+      "title": "THEMIS night-time IR",
+      "file": "layers/themis_night.png",
+      "kind": "proxy",
+      "units": "relative brightness",
+      "cell_m": 20.0,
+      "native_m_per_px": 81.4,
+      "credit": "THEMIS IR mosaic: NASA/JPL-Caltech/Arizona State University, via NASA Mars Trek",
+      "processing": "WMTS zoom 9 tile (~81 m/px), resampled to 20 m; stretch DN 29-144",
+      "note": "Qualitative mosaic, not calibrated temperature or thermal inertia. Proxy for loose vs. rocky ground."
+    }
+  ],
+  "closeups": [
+    {
+      "id": "depot_closeup",
+      "file": "layers/depot_closeup.jpg",
+      "cell_m": 0.25,
+      "kind": "real",
+      "bounds": [
+        [
+          1650.0,
+          1950.0
+        ],
+        [
+          1750.0,
+          2050.0
+        ]
+      ],
+      "credit": "Orthomosaic: Fergason, Galuszka & Hare 2020, USGS, doi:10.5066/P9QJDP48. HiRISE data: NASA/JPL-Caltech/University of Arizona",
+      "processing": "25 cm, reprojected; stretch DN 78-101"
+    }
+  ],
+  "cost_grid": {
+    "format": "little-endian, row-major, row 0 = NORTH edge",
+    "rows": 400,
+    "cols": 400,
+    "cell_m": 10.0,
+    "bounds": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        4000.0,
+        4000.0
+      ]
+    ],
+    "arrays": [
+      {
+        "name": "elev_m",
+        "dtype": "float32",
+        "offset": 0,
+        "count": 160000,
+        "scale": 1.0,
+        "how": "mean of 5x5 analysis cells"
+      },
+      {
+        "name": "slope_deg",
+        "dtype": "uint16",
+        "offset": 640000,
+        "count": 160000,
+        "scale": 0.01,
+        "how": "p90 of 5x5 analysis-cell slopes"
+      },
+      {
+        "name": "rough_m",
+        "dtype": "uint16",
+        "offset": 960000,
+        "count": 160000,
+        "scale": 0.001,
+        "how": "p90 of 5x5 analysis-cell roughness"
+      },
+      {
+        "name": "nodata",
+        "dtype": "uint8",
+        "offset": 1280000,
+        "count": 160000,
+        "scale": 1,
+        "how": "1 if any analysis cell in the block has no data"
+      }
+    ],
+    "defaults": {
+      "slope_nogo_deg": 20,
+      "roughness_nogo_m": 0.2
+    },
+    "bytes": 1440000,
+    "nogo_fraction_at_defaults": 0.0514
+  }
+}

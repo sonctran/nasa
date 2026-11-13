@@ -1,0 +1,72 @@
+{
+  "grid": {
+    "analysis_cell_m": 2.0,
+    "shape": [
+      2000,
+      2000
+    ],
+    "size_m": [
+      4000.0,
+      4000.0
+    ],
+    "corners_lonlat": {
+      "west_lon": 77.37263694027182,
+      "south_lat": 18.424148971741204,
+      "east_lon": 77.44377705972819,
+      "north_lat": 18.491631391173666
+    }
+  },
+  "dtm": {
+    "valid_fraction": 1.0,
+    "elev_min_m": -2578.96,
+    "elev_max_m": -2395.58
+  },
+  "slope_deg": {
+    "p50": 4.16,
+    "p90": 13.19,
+    "p99": 26.96,
+    "max": 69.28
+  },
+  "roughness_m": {
+    "p50": 0.021,
+    "p90": 0.046,
+    "p99": 0.094,
+    "max": 1.23
+  },
+  "nogo_fraction": 0.035,
+  "nogo_fraction_by_cause": {
+    "slope": 0.0349,
+    "roughness": 0.001,
+    "nodata": 0.0
+  },
+  "dtm_minus_rover_elev_waypoints": {
+    "n": 181,
+    "mean_m": 0.002,
+    "median_m": -0.003,
+    "std_m": 0.059,
+    "rms_m": 0.059,
+    "max_abs_m": 0.352
+  },
+  "dtm_minus_rover_elev_depot": {
+    "n": 10,
+    "mean_m": 0.004,
+    "median_m": 0.005,
+    "std_m": 0.014,
+    "rms_m": 0.015,
+    "max_abs_m": 0.03
+  },
+  "hirise_minus_ctx_20m": {
+    "n": 40000,
+    "mean_m": -1.333,
+    "median_m": -1.301,
+    "std_m": 3.907,
+    "rms_m": 4.128,
+    "max_abs_m": 23.971
+  },
+  "counts": {
+    "traverse_segments": 130,
+    "waypoints": 181,
+    "depot_tubes": 10,
+    "pov_photos": 22
+  }
+}

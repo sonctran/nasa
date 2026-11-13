@@ -1,0 +1,56 @@
+{
+  "format": "little-endian, row-major, row 0 = NORTH edge",
+  "rows": 400,
+  "cols": 400,
+  "cell_m": 10.0,
+  "bounds": [
+    [
+      0.0,
+      0.0
+    ],
+    [
+      4000.0,
+      4000.0
+    ]
+  ],
+  "arrays": [
+    {
+      "name": "elev_m",
+      "dtype": "float32",
+      "offset": 0,
+      "count": 160000,
+      "scale": 1.0,
+      "how": "mean of 5x5 analysis cells"
+    },
+    {
+      "name": "slope_deg",
+      "dtype": "uint16",
+      "offset": 640000,
+      "count": 160000,
+      "scale": 0.01,
+      "how": "p90 of 5x5 analysis-cell slopes"
+    },
+    {
+      "name": "rough_m",
+      "dtype": "uint16",
+      "offset": 960000,
+      "count": 160000,
+      "scale": 0.001,
+      "how": "p90 of 5x5 analysis-cell roughness"
+    },
+    {
+      "name": "nodata",
+      "dtype": "uint8",
+      "offset": 1280000,
+      "count": 160000,
+      "scale": 1,
+      "how": "1 if any analysis cell in the block has no data"
+    }
+  ],
+  "defaults": {
+    "slope_nogo_deg": 20,
+    "roughness_nogo_m": 0.2
+  },
+  "bytes": 1440000,
+  "nogo_fraction_at_defaults": 0.0514
+}
