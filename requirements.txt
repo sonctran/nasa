@@ -1,0 +1,17 @@
+# Marswalk Ops - Python pipeline + planner
+# Needs Python 3.12, 3.13 or 3.14 (64-bit). Every pin below was checked to have a
+# ready-made Windows (win_amd64) wheel for 3.12-3.14. Python 3.11 is NOT supported:
+# numpy 2.5.4, scipy 1.18.1, rasterio 1.5.2 and networkx 3.7 have no 3.11 build.
+numpy==2.5.4
+scipy==1.18.1
+pandas==3.1.1
+rasterio==1.5.2
+shapely==2.2.0
+PyYAML==6.0.3
+ortools==9.15.6755
+networkx==3.7        # tests only (Dijkstra reference for A*)
+matplotlib==3.11.2
+pillow==13.0.0
+requests==2.34.2
+pytest==9.2.0
+playwright==1.65.1   # screenshots (scripts/screenshot.py)

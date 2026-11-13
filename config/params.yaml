@@ -1,0 +1,52 @@
+# Marswalk Ops - every model parameter lives here.
+# Each parameter has exactly: value, unit, source_or_assumption, note.
+#   source_or_assumption = a citation (with URL/DOI) OR the word "assumption" (+ reason in note)
+#                          OR "owner-set" for choices Son made (mission design, not physics).
+# Phase 0 only fills in mission-design choices. Physics/human-factors values come in Phase 1-2,
+# and only after the source is checked (SPEC rule 1).
+
+mission:
+  site:
+    value: "Jezero Crater, Three Forks sample depot + delta front"
+    unit: "-"
+    source_or_assumption: owner-set
+    note: "Phase 0 interview. AOI ~4 km x 4 km, exact bounds set in Phase 1 from real data."
+  eva_time_limit:
+    value: 6.0
+    unit: h
+    source_or_assumption: assumption
+    note: "Chosen by owner in Phase 0 (door-to-door). Phase 2: look for a NASA source; if none is verified, keep labeled 'assumption'."
+  crew_size:
+    value: 2
+    unit: astronauts
+    source_or_assumption: owner-set
+    note: "EV1 + EV2, walk only (no rover-assisted option)."
+  mobility_mode:
+    value: walk_only
+    unit: "-"
+    source_or_assumption: owner-set
+    note: "Phase 0 interview. Buddy-rule separation distance set in Phase 2."
+
+tasks:
+  sample_tube_pickup:
+    value: required
+    unit: "-"
+    source_or_assumption: owner-set
+    note: "Retrieving cached tubes at Three Forks is a must-do task, not scored."
+
+science_value:   # transparent rubric, 0-10 points, set by owner ("Ancient-life focus")
+  fine_grained_layered_rock:
+    value: 10
+    unit: points
+    source_or_assumption: owner-set
+    note: "Best place to look for signs of ancient life. Stops chosen from real data in Phase 1-2."
+  delta_layer_sequence:
+    value: 6
+    unit: points
+    source_or_assumption: owner-set
+    note: "Shows how the old lake and river changed over time."
+  transported_boulders:
+    value: 4
+    unit: points
+    source_or_assumption: owner-set
+    note: "Rocks carried in by ancient rivers from outside the crater."

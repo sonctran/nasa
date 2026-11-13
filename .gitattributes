@@ -1,0 +1,7 @@
+# Normalize line endings so the repo works the same on Windows and Linux
+* text=auto
+*.png binary
+*.jpg binary
+*.bin binary
+*.pptx binary
+*.pdf binary

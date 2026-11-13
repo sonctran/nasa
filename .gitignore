@@ -1,0 +1,36 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+
+# Raw downloads are never committed (SPEC rule 7)
+data/raw/*
+!data/raw/.gitkeep
+
+# Processed data is local-only, except small preview images
+data/processed/*
+!data/processed/previews/
+data/processed/previews/*
+!data/processed/previews/.gitkeep
+!data/processed/previews/*.png
+
+# Large geodata formats anywhere outside site/ assets
+*.tif
+*.tiff
+*.img
+*.IMG
+*.vrt
+*.aux.xml
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# Playwright / test output
+test-results/
+playwright-report/
