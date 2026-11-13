@@ -1,6 +1,54 @@
 # PROGRESS
 
-## Current status: Phase 2 (planning engine): COMPLETE. Next: Phase 3 (web app), when Son says so.
+## Current status: Phase 3 (web app): BUILT AND TESTED. Waiting on one exit check: **Son clicks through it locally** (steps below). Next: Phase 4, when Son says so.
+
+### Done in Phase 3 (Fri 2026-11-13, ~2 h 30 min)
+**Run it (Windows PowerShell, from the project folder):**
+```powershell
+.\.venv\Scripts\python.exe -m http.server 8000 --directory site
+```
+then open http://localhost:8000 in Chrome or Edge. (Opening `index.html` by double-click will NOT work: browsers block data loading from `file://`.)
+
+Files: `site/index.html`, `site/methods.html`, `site/css/app.css`, `site/js/engine.js` (browser port of the planner), `site/js/worker.js` (Web Worker), `site/js/app.js` (map + panels), `site/js/charts.js` (SVG charts), `site/js/hud.js` (HUD + live re-plan), `site/vendor/leaflet/` (Leaflet 1.9.4, vendored). New Python: `planner/export_site.py` (params/roles/docs into `site/`, also called by `run_plan`). Tests: `tests/test_js_engine.py` + `tests/js/parity.mjs`; params-sync test in `tests/test_web_assets.py`. Script: `scripts/screenshot.py`. New labelled assumptions: `replan.*` in `config/params.yaml`. DECISIONS T40-T47. METHODS §11 (web app) added; DATA_SOURCES Phase 3 table (Leaflet credit).
+
+What is in the app (SPEC §7):
+- **Map:** HiRISE base image, hillshade, elevation, slope, roughness, no-go, THEMIS day/night, 25 cm depot close-up (each with toggle + opacity + real/derived/assumption/proxy badge); rover traverse, waypoints, depot tubes, rover photos, stops; legend; metre scale bar; cursor readout (x, y, elevation, slope, roughness, walkable).
+- **Plan tab:** recommended plan; live editor (candidate plans 20/26/30/36 pts, add/remove/reorder stops, click-to-add + drag waypoints, keep-out boxes, weight sliders, no-go slope and SEP sliders); route-option table; Pareto chart.
+- **Schedule tab:** EV1/EV2 Gantt with roles, O2 + battery burn-down, live Monte Carlo histogram, tornado (Python, recommended plan).
+- **Stops tab:** 6 cards (science goal, value, work time, PDS quote + source, what to look for, nearest real rover photo with credit and distance) + depot card with the 10 tubes.
+- **Safety tab:** live 9-item Go/No-Go, walk-back margin (+ show on map), SEP rule + replay button, DONKI events (proxy), dose (proxy), consumables.
+- **Checks tab:** A* = Dijkstra, browser = Python, slope check, Apollo 14 check, rover-drive comparison drawn on the map.
+- **HUD mode:** full-screen visor view: next target, distance, bearing, EVA time left, walk-home time, O2 above reserve, battery, terrain/slope caution, task; play/pause/speed/scrub; events **Solar storm alert, Slow crew, Suit O2 fault** → live re-plan.
+- **Methods page:** problem, labels, AI use, limitations, future work, and METHODS / ASSUMPTIONS / DATA_SOURCES rendered from the repo files.
+
+### Phase 3 exit checks (evidence)
+| Exit check | Result | Evidence |
+|---|---|---|
+| A* ported to a Web Worker, matches Python on a fixture | **PASS** | `pytest tests/test_js_engine.py`: 8 random fixture grids, 96 routes: same cost (≤ 1e-12 relative) and same path cells; real grid: 5/5 plan legs equal Python A* and `plan.json` Dijkstra; plan totals equal `plan.json` to 1e-9; walk-back 92.94 min both; SEP max 39.23 min both |
+| Screenshots of every panel | **PASS** | 15 images in `docs/screenshots/` (plan, route options + Pareto, Gantt + burn-down, Monte Carlo + tornado, stop cards, safety, checks, slope layer + legend + readout, live re-plan, custom waypoint + 15° rule, HUD, HUD slow-crew re-plan, HUD SEP replay, methods, tablet) |
+| Map + route + timeline + HUD shown | **PASS** | `01_first_screen_plan.jpg`, `03_schedule_gantt_burndown.jpg`, `11_hud_visor.jpg`, `12_...`, `13_...` |
+| No console errors | **PASS** | `docs/screenshots/report.json`: 0 console errors, 0 page errors, 0 failed requests, 0 HTTP errors, 0 warnings (Chromium, desktop 1440×900 and tablet 820×1180) |
+| Son has clicked through it locally | **OPEN** | Needs Son (steps above) |
+
+### Phase 3 measured numbers (Chromium in the cloud container; `report.json`)
+- First route on the map: **0.19 s** after page open. Live plan ready (worker built, all checks, 20,000-run MC): **1.0 s**. SPEC targets: route < 3 s, load < 5 s.
+- One live re-plan of the whole plan: **~290 ms** (A* all legs 9-20 ms, walk-home field ~170 ms, Monte Carlo ~30 ms). Adding a stop, click to updated screen: **213 ms**. No-go slope change rebuilds the model in **95 ms**.
+- HUD re-plan after "Slow crew": **20 ms** (16 sequences checked exactly; keeps Wildcat Ridge, Skinner Ridge, depot; home at T+5:30 of 6:00, O2 44 % left). SEP replay: **113 ms**; alert at the farthest point (T+1:41), 39 min to shelter vs 60 min limit → rule met. Target < 1 s.
+- Browser Monte Carlo for the recommended plan: **98.3 %** (Python: 98.2 %, difference = sampling noise).
+- Example of the live check catching a bad plan: adding Hidden Harbor at the end of the recommended order → 36 pts, 345 min, **52.7 %** on time → NO-GO (1 check fails).
+- Site size **11 MB** (limit 40 MB). Tablet width: no horizontal scrolling.
+- **Tests: pytest 166 passed** (162 before + 3 JS parity + 1 params sync).
+
+### Phase 3 known issues (for Son)
+1. **Only Chromium was tested** (that is the browser in the cloud container). Edge is Chromium, so it should behave the same; **Firefox is untested** (module Web Workers need Firefox 114+). Phase 4 should check Firefox.
+2. **Windows not tested here.** The app is plain static files, so it should not care; please run the command above on your PC.
+3. The JS parity test needs **Node.js**; on a PC without Node it is skipped (the app itself does not need Node).
+4. The re-plan event sizes (pace ×0.7, tasks ×1.3, O2 ×2) are **assumptions** chosen to demonstrate the mechanism. They are labelled in the HUD and in ASSUMPTIONS.md.
+5. Route-option table, Pareto and tornado do not change when you edit the plan: they are the Python results for the recommended stops (labelled in the app).
+6. Skinner Ridge and Wildcat Ridge are 24 m apart, so their map markers overlap at the default zoom (zoom in to separate them).
+7. Fixed in passing: METHODS.md limitation 6 said "no 2 m route point steeper than 20°"; the measured result is 0.07 % of points just over 20° (max 20.01°). Now consistent.
+
+### Phase 2 record (planning engine: COMPLETE)
 
 ### Done in Phase 2 (Fri 2026-11-13, ~3 h 15 min incl. the paper update)
 **One command:** `python -m planner.run_plan` (about 11 s). It writes `site/assets/data/plan.json` (81 KB, for the app), `data/processed/plan_full.json`, previews `data/processed/previews/20_plan_map.png`, `21_plan_charts.png`, `22_validation_rover.png`, and regenerates `docs/ASSUMPTIONS.md` from `config/params.yaml`.
@@ -161,4 +209,4 @@ Cut first → last. The "Keep" list in SPEC §10 is unchanged.
 8. OR-Tools scheduling (cut last: priority #1; fallback = fixed stop order with timing)
 
 ## Next
-Phase 3 (web app): map + layers, A* Web Worker (must match Python on a fixture), plan/schedule/safety panels, HUD mode. Inputs are ready in `site/assets/data/` (`plan.json`, `cost_grid.bin`, `layers.json`, `vectors.json`).
+Phase 4 (validate, polish, deploy): independent reviewer subagent, Firefox check, GitHub Pages deploy, live URL test. Son decides the repo name/URL.

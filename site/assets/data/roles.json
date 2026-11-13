@@ -1,0 +1,22 @@
+{
+ "walk": {
+  "EV1": "Lead: navigation, hazard call-outs",
+  "EV2": "Follow within sight: consumables check, photo log"
+ },
+ "depot": {
+  "EV1": "Pick up and inspect tubes, read tube IDs aloud",
+  "EV2": "Bag and stow tubes, photo-document each drop zone"
+ },
+ "fine_grained_layered_rock": {
+  "EV1": "Describe layers, choose sample spot, collect sample",
+  "EV2": "Context and close-up photos, bag and label sample"
+ },
+ "delta_layer_sequence": {
+  "EV1": "Describe and measure the layer stack",
+  "EV2": "Panorama and scale photos"
+ },
+ "transported_boulders": {
+  "EV1": "Pick representative boulders, collect chips",
+  "EV2": "Photos with scale, record positions"
+ }
+}

@@ -11,7 +11,7 @@ Every number the planner uses is listed here, in one of three groups:
 Tobler (1993) and Minetti et al. (2002) were blocked for automated access and were read from PDFs supplied by Son (2026-11-13). The dose-equivalent numbers of Hassler et al. (2014) could not be read and are **not used**. See DECISIONS T27.
 
 
-## 1. Assumptions (no verified source) (36)
+## 1. Assumptions (no verified source) (40)
 
 | Parameter | Value | Unit | Reason / note |
 |---|---|---|---|
@@ -51,6 +51,10 @@ Tobler (1993) and Minetti et al. (2002) were blocked for automated access and we
 | `montecarlo.metabolic_sigma` | 0.2 | log-normal sigma | Whole-EVA metabolic-rate factor (median 1). Apollo station-work rates ranged 244-351 kcal/h between crew members in Waligora Table 2. |
 | `montecarlo.dwell_sigma` | 0.3 | log-normal sigma | Each stop's work time varies on its own (median 1). Field tasks often run long; no source. |
 | `montecarlo.tornado_quantile` | 0.1 | quantile | Tornado bars show each input at its 10th and 90th percentile. |
+| `replan.slow_crew_speed_factor` | 0.7 | x planned walking speed | 'Slow crew' event: the crew walks at 70% of the planned pace for the rest of the EVA (about the 1st percentile of the Monte Carlo speed spread, sigma 0.15). No source. |
+| `replan.slow_crew_work_factor` | 1.3 | x planned work time | 'Slow crew' event: every remaining task takes 30% longer. No source. |
+| `replan.suit_fault_o2_factor` | 2.0 | x planned O2 use rate | 'Suit O2 fault' event: the suit uses oxygen twice as fast as planned for the rest of the EVA (for example a slow leak). Illustrative only; no NASA failure rate or leak size is modelled. |
+| `replan.replan_weights` | [0.3333, 0.3333, 0.3334, 0.0] | weights | Route weights used when re-planning after an event: the same Balanced weights as the plan of record. A solar-storm alert uses the Fastest weights instead (get to shelter as fast as possible). |
 
 ## 2. Owner-set mission choices (14)
 

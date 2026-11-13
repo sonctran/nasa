@@ -135,17 +135,28 @@ On the crater floor the planner follows the rover clearly better than a straight
 3. Suit mass is the Apollo A7LB system. The O₂ tank is sized like xEMU (8 h at 352 W). No verified Mars suit numbers exist.
 4. Work times, the 60-min SEP shelter limit, the 15 % O₂ reserve and the Monte Carlo spreads are assumptions. The 30-point plan sits right on the 95 % line (94.96 % vs 95.9 % depending on the walking model), so the 26- vs 30-point choice is a close call.
 5. Radiation is a Gale-crater proxy, absorbed dose only. The habitat's shielding is not modelled.
-6. The 10 m grid with P90 aggregation smooths small obstacles. The 2 m check above shows no point steeper than 20°, but rocks below DTM resolution are invisible.
+6. The 10 m grid with P90 aggregation smooths small obstacles. The 2 m check above finds 0.07 % of route points just over 20° (max 20.01°), and rocks below DTM resolution are invisible.
 7. Depot tube positions are the rover's position at each drop, not the tube itself. Pickup is one 50-min task at the depot centre.
 
-## 11. How to reproduce
+## 11. The web app (Phase 3)
+
+The app (`site/`) is a static page: no server code and no build step.
+
+- **Same engine in the browser.** `site/js/engine.js` is a line-by-line port of the Python cost model, A*, walk-home field, timeline, safety checks and Monte Carlo. It runs in a Web Worker (`site/js/worker.js`), so the map stays smooth. The test `tests/test_js_engine.py` runs it in Node.js and checks: on 8 random fixture grids (96 routes) the cost matches Python to 1e-12 and the path is the same cell for cell; on the real grid the 5 legs of the recommended plan match Python A* and the Dijkstra costs in `plan.json`; the whole-plan totals match `plan.json` to 1e-9.
+- **Live planning.** When the user changes stops, order, waypoints, weights, the no-go slope or keep-out boxes, the worker re-routes every leg, rebuilds the timeline and the walk-back/SEP checks, and runs a new 20,000-run Monte Carlo. The browser Monte Carlo uses its own random-number generator (mulberry32 + Box-Muller), so its probabilities differ from Python by sampling noise only (recommended plan: 98.3 % in the browser vs 98.2 % in Python; the test allows 4 standard errors).
+- **Live re-plan in the HUD (owner upgrade S4).** During playback the user can trigger three events. *Solar storm alert*: the crew stops and walks home by the fastest safe route; the app reports the time to shelter against the limit. *Slow crew* (pace ×0.7, tasks ×1.3) and *Suit O2 fault* (O2 use ×2): the worker tries **every** subset and order of the stops not yet done (at most 326 sequences for 5 stops), keeps the depot if any plan allows it, then the most science points, then the earliest return, subject to the EVA limit and the O2 reserve. The event sizes are **assumptions** (`replan.*` in `config/params.yaml`), chosen to show the mechanism, not failure statistics.
+- **What is precomputed.** The route-option table, the Pareto chart, the tornado chart and the validation numbers come from the Python run (`plan.json`) for the recommended stops; the app says so next to each.
+
+## 12. How to reproduce
 
 ```powershell
 .\.venv\Scripts\python.exe -m pipeline.run_all     # data (Phase 1)
 .\.venv\Scripts\python.exe -m planner.run_plan     # plan, results JSON, previews, ASSUMPTIONS.md (about 15 s)
-.\.venv\Scripts\python.exe -m pytest               # all tests
+.\.venv\Scripts\python.exe -m pytest               # all tests (the JS parity test needs Node.js, else it is skipped)
+.\.venv\Scripts\python.exe -m http.server 8000 --directory site   # then open http://localhost:8000
+.\.venv\Scripts\python.exe scripts\screenshot.py   # click-through + screenshots (needs: python -m playwright install chromium)
 ```
 
-## 12. Use of AI
+## 13. Use of AI
 
-The pipeline and planner code, these docs, and the literature search were produced with Claude Code (Anthropic), working under Son Tran's direction. Every source quoted here was re-read from the original page or PDF before use. Values that could not be verified are labelled assumptions, or were left out.
+The pipeline, planner and web-app code, these docs, and the literature search were produced with Claude Code (Anthropic), working under Son Tran's direction. Every source quoted here was re-read from the original page or PDF before use. Values that could not be verified are labelled assumptions, or were left out.

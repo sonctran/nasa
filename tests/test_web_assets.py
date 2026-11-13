@@ -40,3 +40,11 @@ def test_site_assets_stay_small():
     total = sum(f.stat().st_size for f in (ROOT / "site").rglob("*") if f.is_file())
     assert total < 40e6                                                      # SPEC rule 7
     assert max(f.stat().st_size for f in (ROOT / "site").rglob("*") if f.is_file()) < 50e6
+
+
+def test_site_params_match_config():
+    """site/assets/data/params.json (read by the browser engine) must equal config/params.yaml."""
+    from pipeline.common import load_params
+
+    assert json.loads((DATA / "params.json").read_text(encoding="utf-8")) == load_params(), \
+        "run python -m planner.export_site"

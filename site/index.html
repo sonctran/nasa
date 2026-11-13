@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marswalk Ops</title>
+<meta name="description" content="Plans a safe two-astronaut Marswalk (EVA) in Jezero Crater, Mars, on real NASA terrain data: stops, route, schedule, safety rules and risk.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23e69f00'/%3E%3Cpath d='M3 11 L7 5 L9 8 L10 7 L13 11Z' fill='%23111'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<header>
+  <div class="brand">Marswalk <span>Ops</span></div>
+  <div class="pitch"><b>Plans a safe 6-hour, two-astronaut Marswalk in Jezero Crater:</b> it picks the science stops, finds the route over real NASA terrain, schedules the work and measures the risk.</div>
+  <div class="actions">
+    <span id="gochip" class="gochip" title="Go/No-Go for the plan on the map">…</span>
+    <button id="btn-hud" class="primary" title="Helmet visor view with playback">HUD mode</button>
+    <a href="methods.html"><button>Methods &amp; data</button></a>
+  </div>
+</header>
+<main>
+  <div id="map" aria-label="Map of the study area in Jezero Crater"></div>
+  <aside id="panel">
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="plan" aria-selected="true">Plan</button>
+      <button role="tab" data-tab="schedule">Schedule</button>
+      <button role="tab" data-tab="stops">Stops</button>
+      <button role="tab" data-tab="safety">Safety</button>
+      <button role="tab" data-tab="checks">Checks</button>
+    </nav>
+    <section class="tabpane" id="tab-plan" role="tabpanel"></section>
+    <section class="tabpane" id="tab-schedule" role="tabpanel" hidden></section>
+    <section class="tabpane" id="tab-stops" role="tabpanel" hidden></section>
+    <section class="tabpane" id="tab-safety" role="tabpanel" hidden></section>
+    <section class="tabpane" id="tab-checks" role="tabpanel" hidden></section>
+  </aside>
+</main>
+
+<div id="hud" hidden aria-label="HUD helmet visor view">
+  <div class="top">
+    <strong>HUD · EV1 visor</strong>
+    <span class="clock" id="hud-clock">T+0:00</span>
+    <span class="badge modeled">modeled playback</span>
+    <span style="flex:1"></span>
+    <button id="hud-ev-sep" class="danger" title="Replay a solar particle event alert: crew must reach shelter">Solar storm alert</button>
+    <button id="hud-ev-slow" title="Crew walks at 70% pace, tasks take 30% longer (assumption)">Slow crew</button>
+    <button id="hud-ev-o2" title="Suit uses O2 twice as fast (assumption)">Suit O2 fault</button>
+    <button id="hud-reset" title="Back to the original plan">Reset</button>
+    <button id="hud-exit">Exit HUD (Esc)</button>
+  </div>
+  <div class="stage" id="hud-stage">
+    <canvas id="hud-canvas"></canvas>
+    <div class="ro tl"><span class="lab">Next</span><span class="mid" id="hud-next">-</span><span class="big" id="hud-dist">-</span><span class="mid" id="hud-brg">-</span></div>
+    <div class="ro tr"><span class="lab">EVA time left</span><span class="big" id="hud-left">-</span><span class="lab">Walk home now</span><span class="mid" id="hud-home">-</span></div>
+    <div class="ro bl"><span class="lab">O2 above reserve</span><span class="big" id="hud-o2">-</span><span class="lab">Battery</span><span class="mid" id="hud-bat">-</span></div>
+    <div class="ro br"><span class="lab">Terrain here</span><span class="mid" id="hud-terrain">-</span><span class="lab">Task</span><span class="mid" id="hud-task">-</span></div>
+    <div class="alert" id="hud-alert" hidden></div>
+    <div class="replan" id="hud-replan" hidden></div>
+  </div>
+  <div class="bottom">
+    <button id="hud-play" class="primary">Play</button>
+    <label>Speed <select id="hud-speed"><option value="60">60×</option><option value="180" selected>180×</option><option value="600">600×</option></select></label>
+    <input type="range" id="hud-scrub" min="0" max="1000" value="0" aria-label="Mission time">
+    <span class="small" style="color:#9fffd0">All values are modeled from real terrain + labelled assumptions. Not flight software.</span>
+  </div>
+</div>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

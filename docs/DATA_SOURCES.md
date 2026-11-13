@@ -58,6 +58,16 @@ Read on 2026-11-13. Each value used is quoted in `config/params.yaml` / `config/
 - **Atmosphere** (ESA/LMD Mars Climate Database). Reachable in Phase 0; not used yet. Cut item #2.
 - **Geology / spectral layer.** Cut item #1, not attempted.
 
+## Phase 3 additions (web app)
+
+No new data was downloaded in Phase 3. The app reads only the processed files listed above, plus:
+
+| Item | Provider | Exact source | Version / date | Licence / credit | Use |
+|---|---|---|---|---|---|
+| Leaflet map library | Volodymyr Agafonkin and contributors | npm package `leaflet@1.9.4` (`npm pack`, files `dist/leaflet.js`, `dist/leaflet.css`, `dist/images/*`) | 1.9.4, fetched 2026-11-13 | BSD-2-Clause, copied to `site/vendor/leaflet/LICENSE` | Map display (vendored, no CDN) |
+| `site/assets/data/params.json`, `roles.json` | this project | generated from `config/params.yaml` and `config/stops.yaml` by `python -m planner.export_site` | - | - | Model numbers for the browser engine; crew roles |
+| `site/assets/docs/*.md` | this project | copies of `docs/METHODS.md`, `ASSUMPTIONS.md`, `DATA_SOURCES.md` | - | - | Rendered on the Methods page |
+
 ## Cross-checks on the elevation data (from `data/processed/checks.json`)
 
 | Check | Result | What it means |

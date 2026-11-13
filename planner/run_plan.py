@@ -712,8 +712,11 @@ def main() -> dict:
     from .plots import make_previews
     from .write_docs import main as write_docs
 
+    from .export_site import main as export_site
+
     make_previews(world, out, home)
     write_docs()
+    export_site()
     print(summary_text(out))
     return out
 

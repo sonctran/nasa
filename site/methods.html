@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marswalk Ops · Methods</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23e69f00'/%3E%3Cpath d='M3 11 L7 5 L9 8 L10 7 L13 11Z' fill='%23111'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/app.css">
+<style>html,body{height:auto}</style>
+</head>
+<body>
+<header>
+  <div class="brand">Marswalk <span>Ops</span></div>
+  <div class="pitch"><b>About, methods and data.</b> How the plan is made, what is real, what is modeled and what is assumed.</div>
+  <div class="actions"><a href="index.html"><button class="primary">← Back to the planner</button></a></div>
+</header>
+<div class="doc">
+  <h1>About Marswalk Ops</h1>
+  <p><b>The problem.</b> The first people on Mars will work outside on foot, in suits, with a fixed supply of oxygen and a hard time limit.
+    Every Marswalk (EVA) needs answers to four questions: where is it safe to walk, which way should we go, which science stops fit, and how likely are we to get home on time if things go slower than planned?</p>
+  <p><b>What this tool does.</b> It plans a 6-hour, two-astronaut Marswalk in Jezero Crater, from a habitat on the crater floor to the sample tubes Perseverance left at the Three Forks depot and to real delta-front science sites, and back.
+    It treats the walk as an operations problem: a cost model of human walking (time, energy, hazard), an exact route search (A*), an exact stop-selection and ordering model (orienteering problem, OR-Tools CP-SAT), safety rules checked at every 10 m of the route, and a Monte Carlo risk model.</p>
+  <p><b>Labels used everywhere in the app.</b>
+    <span class="badge real">real</span> measured data ·
+    <span class="badge derived">derived</span> computed from real data by a stated method ·
+    <span class="badge modeled">modeled</span> output of our model ·
+    <span class="badge assumption">assumption</span> a value we chose without a verified source ·
+    <span class="badge proxy">proxy</span> data from somewhere else (Gale crater, the Moon, near-Earth space) standing in for Jezero ·
+    <span class="badge owner">owner-set</span> a mission-design choice.</p>
+
+  <h2 id="ai">Use of AI</h2>
+  <ul>
+    <li><b>Ideation:</b> Claude (Anthropic) suggested concept upgrades; Son Tran chose which to keep (live re-plan and robust plan).</li>
+    <li><b>Code:</b> most of the code (data pipeline, planner, this web app) was written with Claude Code, then tested automatically (pytest; a Python-vs-browser parity test).</li>
+    <li><b>Research and writing:</b> Claude Code helped find and check data sources and drafted these documents. Every number is traced to a source or labelled as an assumption.</li>
+    <li><b>Images:</b> no AI-generated images are used. All imagery is real NASA/USGS data.</li>
+  </ul>
+
+  <h2 id="limits">Limitations</h2>
+  <ul>
+    <li>The walking model uses lunar (Apollo), Earth and suit-design numbers. NASA reports higher metabolic rates in Mars gravity, so walking cost is probably underestimated.</li>
+    <li>Many safety values are assumptions (SEP shelter time 60 min, O2 reserve 15 %, O2 tank size, battery draw, work times). All are listed below and most are sliders in the app.</li>
+    <li>The 10 m grid (from a 1 m DTM) cannot see rocks smaller than a few metres. Roughness mostly flags scarps.</li>
+    <li>Radiation is absorbed dose only, from Gale crater (proxy). Solar particle events are near-Earth detections (proxy).</li>
+    <li>The rover comparison is real evidence, but a rover is not a human. One of two drives was inconclusive.</li>
+    <li>This is a planning study, not flight software.</li>
+  </ul>
+  <h2 id="future">Future work</h2>
+  <ul>
+    <li>Use Mars-gravity suited walking data when available; fit the Monte Carlo spreads to field-test data.</li>
+    <li>Add a pressurized rover option (vehicle routing with a walk-back constraint) and supply-cache placement.</li>
+    <li>Add partner data: the ESA/LMD Mars Climate Database for temperature and dust at the EVA time.</li>
+  </ul>
+
+  <h2 id="docs">Full documentation</h2>
+  <p class="small muted">Rendered from the project's Markdown files (the same files as in the repository).</p>
+  <div class="row mdtabs">
+    <button data-md="METHODS.md" aria-selected="true">Methods</button>
+    <button data-md="ASSUMPTIONS.md">Assumptions (all parameters)</button>
+    <button data-md="DATA_SOURCES.md" id="sources">Data sources and credits</button>
+  </div>
+  <div id="md"></div>
+</div>
+<script type="module">
+const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function inline(s) {
+  s = esc(s);
+  s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+  s = s.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+  s = s.replace(/(^|[^*])\*([^*\s][^*]*)\*/g, '$1<i>$2</i>');
+  s = s.replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  s = s.replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, '$1<a href="$2" target="_blank" rel="noopener">$2</a>');
+  return s;
+}
+// Small Markdown renderer: headings, paragraphs, lists, tables, code blocks, rules.
+function md(text) {
+  const L = text.replace(/\r/g, '').split('\n');
+  let out = '', i = 0;
+  while (i < L.length) {
+    const l = L[i];
+    if (/^```/.test(l)) { let j = i + 1, b = []; while (j < L.length && !/^```/.test(L[j])) b.push(L[j++]); out += `<pre><code>${esc(b.join('\n'))}</code></pre>`; i = j + 1; continue; }
+    const h = /^(#{1,4})\s+(.*)/.exec(l);
+    if (h) { const n = Math.min(h[1].length + 1, 4); out += `<h${n}>${inline(h[2])}</h${n}>`; i++; continue; }
+    if (/^---+\s*$/.test(l)) { out += '<hr>'; i++; continue; }
+    if (/^\|/.test(l)) {
+      const rows = []; while (i < L.length && /^\|/.test(L[i])) rows.push(L[i++]);
+      const cells = (r) => r.replace(/^\||\|\s*$/g, '').split('|').map((c) => c.trim());
+      const body = rows.filter((r) => !/^\|[\s:|-]+\|?\s*$/.test(r));
+      out += '<table><tr>' + cells(body[0]).map((c) => `<th>${inline(c)}</th>`).join('') + '</tr>' +
+        body.slice(1).map((r) => '<tr>' + cells(r).map((c) => `<td>${inline(c)}</td>`).join('') + '</tr>').join('') + '</table>';
+      continue;
+    }
+    if (/^\s*([-*]|\d+\.)\s+/.test(l)) {
+      const ordered = /^\s*\d+\./.test(l); const items = [];
+      while (i < L.length && /^\s*([-*]|\d+\.)\s+/.test(L[i])) {
+        let it = L[i++].replace(/^\s*([-*]|\d+\.)\s+/, '');
+        while (i < L.length && /^\s{2,}\S/.test(L[i]) && !/^\s*([-*]|\d+\.)\s+/.test(L[i])) it += ' ' + L[i++].trim();
+        items.push(it);
+      }
+      out += (ordered ? '<ol>' : '<ul>') + items.map((x) => `<li>${inline(x)}</li>`).join('') + (ordered ? '</ol>' : '</ul>');
+      continue;
+    }
+    if (!l.trim()) { i++; continue; }
+    const p = []; while (i < L.length && L[i].trim() && !/^(#|\||```|\s*([-*]|\d+\.)\s)/.test(L[i])) p.push(L[i++]);
+    out += `<p>${inline(p.join(' '))}</p>`;
+  }
+  return out;
+}
+async function show(name) {
+  document.querySelectorAll('[data-md]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.md === name)));
+  const r = await fetch('assets/docs/' + name);
+  document.getElementById('md').innerHTML = r.ok ? md(await r.text()) : '<p>Could not load ' + name + '</p>';
+}
+document.querySelectorAll('[data-md]').forEach((b) => b.onclick = () => show(b.dataset.md));
+show(location.hash === '#sources' ? 'DATA_SOURCES.md' : 'METHODS.md');
+</script>
+</body>
+</html>
