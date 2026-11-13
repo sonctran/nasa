@@ -34,7 +34,7 @@ Checked 2026-11-13 by a subagent using HEAD/range requests and small GETs (≤ 5
 **Bottom line:** the five core data kinds are all reachable (topo, optical, thermal, ground truth/depot, POV imagery). The "≥ 3 kinds" rule is safe. The open items are citations and DONKI volume, not data.
 
 ### Known issues / risks
-1. **Space Apps rules on early work: not verified.** Phase 0 (setup + planning) happens Friday, before the window opens Sat 9:00 a.m. I couldn't confirm whether the rules allow building before the event starts. **Son: please check the official rules / your local event.** The plan below starts real building (Phase 1) at Sat 9:00 a.m. to be safe.
+1. ~~**Space Apps rules on early work.**~~ **Resolved 2026-11-13:** Son confirmed that building before Sat 9:00 a.m. is allowed. (Son's confirmation; I didn't check the rules myself.) Phases can start early. The times in the plan below are now latest-start times, not earliest.
 2. **Windows not tested here.** Claude Code runs in a Linux cloud container. Son should run the 3 README commands once on his PC to confirm `pytest` passes on Windows.
 3. **Cloud container is temporary.** Anything not committed and pushed is lost when the session ends. Raw data must be re-downloadable by `pipeline/download.py`.
 4. ~~**GitHub push blocked (403).**~~ **Fixed 2026-11-13:** Son installed the Claude GitHub App. Branch `claude/serene-sagan-hlltkr` now pushes to `sonctran/nasa`.

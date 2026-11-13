@@ -17,6 +17,8 @@ One line per decision, with its reason. "Son" = owner decision. "Tech" = technic
 
 | S9 | **Plan approved**: the hour-by-hour schedule in PROGRESS.md, plus a new cut order (geology → atmosphere → thermal → live re-plan → HUD playback → MC tornado → robust plan → OR-Tools last). | Matches Son's priorities (S8). Approved 2026-11-13. |
 
+| S10 | **Building before the Sat 9:00 a.m. window is allowed.** | Son confirmed the event rules (2026-11-13). Plan times become latest-start times. |
+
 ## Technical decisions
 
 | # | Decision | Reason |
