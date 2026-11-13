@@ -1,6 +1,6 @@
 # PROGRESS
 
-## Current status: Phase 0 (setup + plan): done, waiting for Son's plan approval
+## Current status: Phase 0 (setup + plan): COMPLETE. Son approved the plan and cut order on 2026-11-13. Next: Phase 1, when Son says so.
 
 ### Done in Phase 0 (Fri 2026-11-13)
 - Copied the spec from Google Drive (`MARTIAN_MAP_SPEC.md`, 20,192 bytes, same size as on Drive) to `SPEC.md`.
@@ -72,7 +72,7 @@ Submission window: Sat Nov 14 9:00 a.m. → Sun Nov 15 11:59 p.m. Internal targe
 | 20:30-21:00 | - | **Son submits** (Terms box, "Confirm All Work is Original", Submit for Judging, banner, certificate). | **Son** |
 | 21:00-23:59 | - | Emergency buffer only. | |
 
-### Proposed cut order (needs Son's OK; it changes SPEC §10 to match his priorities)
+### Cut order (approved by Son 2026-11-13; replaces the "Cut first" list in SPEC §10)
 Cut first → last. The "Keep" list in SPEC §10 is unchanged.
 1. Geology/spectral layer
 2. Atmosphere layer

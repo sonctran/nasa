@@ -15,6 +15,8 @@ One line per decision, with its reason. "Son" = owner decision. "Tech" = technic
 | S7 | Crew: **2 astronauts, walk only.** No rover-assisted route option. | Keeps scope tight. Buddy rule applies. |
 | S8 | Feature priority: **1. Stop scheduling + timeline, 2. Safety + risk, 3. HUD helmet view.** | Son added the HUD as #3 during the interview ("I like the concept of a nice HUD display"). These get extra polish and are cut last. |
 
+| S9 | **Plan approved**: the hour-by-hour schedule in PROGRESS.md, plus a new cut order (geology → atmosphere → thermal → live re-plan → HUD playback → MC tornado → robust plan → OR-Tools last). | Matches Son's priorities (S8). Approved 2026-11-13. |
+
 ## Technical decisions
 
 | # | Decision | Reason |
