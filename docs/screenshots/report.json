@@ -1,5 +1,5 @@
 {
- "url": "http://127.0.0.1:39237/",
+ "url": "http://127.0.0.1:33119/",
  "console_errors": [],
  "console_warnings": [],
  "page_errors": [],
@@ -23,27 +23,27 @@
   "15_tablet.jpg"
  ],
  "timing_ms": {
-  "first_route_on_map": 188,
-  "live_plan_ready": 997,
-  "network_idle": 997,
-  "replan_add_stop_roundtrip": 213
+  "first_route_on_map": 197,
+  "live_plan_ready": 1000,
+  "network_idle": 1001,
+  "replan_add_stop_roundtrip": 231
  },
  "dom": {
-  "go_chip": "GO \u00b7 all 9 checks pass",
-  "live_result": "26 pts\nscience value\n267 min\nof 360 min (97 walk)\n98.3 %\nhome on time, 20,000 runs\n3.05 km\nwalked, +43 m climb\n490 kcal\nwalking energy (per person)\n15.7\u00b0\nmax cell slope \u00b7 8.4 caution min",
-  "live_status": "Computed in your browser in 283 ms: A* 18 ms (5,855 cells expanded), walk-home field 167 ms, Monte Carlo 29 ms. The browser Monte Carlo uses its own random numbers, so it can differ from the Python result by about \u00b10.3 %.",
-  "safety_banner": "GO: all 9 checks pass MODELED",
+  "go_chip": "GO\nfor EVA: all 9 safety rules pass modeled\n\u2713\nEVA length\n267 min\nlimit 360 min modeled\n\u2713\nHome on time\n98.3 %\nof 20,000 runs modeled\n\u2713\nWalk-back O2\n+35.6 %\ntank spare modeled\n\u2713\nWalk-back time\n+93 min\nspare modeled\n\u2713\nStorm shelter\n39 min\nlimit 60 min assumption\n\u2713\nSteepest step\n15.7\u00b0\nlimit 20\u00b0 modeled\n\u2713\nO2 left at return\n51 %\nreserve 15 % modeled\n\u2713\nBattery left\n44 %\nat return assumption\n\u2713\nSample tubes\ncollected\n10 tubes owner-set",
+  "live_result": "Science value\n26 pts owner-set\nDuration\n267 of 360 min (97 min walking, 170 min work)\nDistance\n3.05 km, 43 m of climbing\nWalking energy\n490 kcal per person\nSteepest 10 m cell\n15.7\u00b0, 8.4 min on caution ground\nHome on time\n98.3 % of 20,000 runs",
+  "live_status": "Computed in your browser in 264 ms: A* 15 ms (5,855 cells expanded), walk-home field 166 ms, Monte Carlo 28 ms. The browser Monte Carlo uses its own random numbers, so it can differ from the Python result by about \u00b10.3 %.",
+  "safety_banner": "GO: all 9 checks pass modeled",
   "checklist": "\u2714\nEVA fits the time limit (planned)\n267 of 360 min\n\u2714\nHome on time in \u2265 95 % of Monte Carlo runs\n98.3 % of 20,000 runs\n\u2714\nWalkback rule: can always walk home with reserve O2\ntightest O2 margin 35.6 % of tank above reserve\n\u2714\nWalkback rule: can always walk home within the EVA limit\ntightest time margin 93 min\n\u2714\nSEP shelter reachable within 60 min everywhere\nfarthest point 39 min from shelter\n\u2714\nNo route cell steeper than 20\u00b0 (10 m grid)\nmax 15.7\u00b0\n\u2714\nO2 left at return above reserve\n51 % left (reserve 15 %)\n\u2714\nBattery left at return above 0\n44 % left\n\u2714\nSample tubes collected (depot visited)\nThree Forks depot is on the route",
-  "cursor_readout": "CURSOR (10 M CELL)\nx 2,010 m \u00b7 y 1,752 m\nElevation -2545.0 m REAL\nSlope 3.2\u00b0 \u00b7 roughness 0.02 m DERIVED\nWalkable",
-  "after_add_hidden_harbor": "36 pts\nscience value\n345 min\nof 360 min (130 walk)\n52.7 %\nhome on time, 20,000 runs\n4.01 km\nwalked, +71 m climb\n655 kcal\nwalking energy (per person)\n15.7\u00b0\nmax cell slope \u00b7 12.2 caution min",
-  "after_add_go_chip": "NO-GO \u00b7 1 check(s) fail",
-  "custom_status": "Computed in your browser in 296 ms: A* 9 ms (6,663 cells expanded), walk-home field 178 ms, Monte Carlo 25 ms. Rules rebuilt in 95 ms (no-go share 10.7 %). The browser Monte Carlo uses its own random numbers, so it can differ from the Python result by about \u00b10.3 %.",
-  "hud": "NEXT\nAT AMALIK\nhere\nEVA TIME LEFT\n5:12\nWALK HOME NOW\n34 min \u00b7 shelter limit 60\nO2 ABOVE RESERVE\n75 %\nBATTERY\n90 %\nTERRAIN HERE\nslope 4\u00b0 \u00b7 elev -2526 m\nTASK\nScience stop (fine grained layered rock)",
-  "hud_replan_slow": "Slow crew: pace \u00d70.70, tasks \u00d71.30 (assumption) at T+1:23, after finishing Amalik (Enchanted Lake member).\nRe-planned in 20 ms (16 stop sequences checked exactly). New plan: Wildcat Ridge \u2192 Skinner Ridge \u2192 Three Forks sample depot \u2192 Habitat.\nHome at T+5:30 (limit 6:00), O2 left 44 % (reserve 15 %).",
+  "cursor_readout": "Point under the cursor (10 m cell)\nx 2,086 m, y 1,673 m\nElevation -2546.4 m real\nSlope 3.6\u00b0, roughness 0.02 m derived\nWalkable",
+  "after_add_hidden_harbor": "Science value\n36 pts owner-set\nDuration\n345 of 360 min (130 min walking, 215 min work)\nDistance\n4.01 km, 71 m of climbing\nWalking energy\n655 kcal per person\nSteepest 10 m cell\n15.7\u00b0, 12.2 min on caution ground\nHome on time\n52.7 % of 20,000 runs",
+  "after_add_go_chip": "NO-GO\n1 of 9 safety rules fail modeled",
+  "custom_status": "Computed in your browser in 299 ms: A* 10 ms (6,181 cells expanded), walk-home field 174 ms, Monte Carlo 25 ms. Rules rebuilt in 98 ms (no-go share 10.7 %). The browser Monte Carlo uses its own random numbers, so it can differ from the Python result by about \u00b10.3 %.",
+  "hud": "Next target\nAt Amalik\nhere\nEVA time left\n5:12\nWalk home now\n34 min (storm-shelter limit 60 min)\nO2 above reserve\n75 %\nBattery\n90 %\nGround here\nslope 4\u00b0, height -2526 m\nTask\nScience stop (fine grained layered rock)",
+  "hud_replan_slow": "Slow crew: pace \u00d70.70, tasks \u00d71.30 (assumption) at T+1:23, after finishing Amalik (Enchanted Lake member).\nRe-planned in 21 ms (16 stop sequences checked exactly). New plan: Wildcat Ridge \u2192 Skinner Ridge \u2192 Three Forks sample depot \u2192 Habitat.\nHome at T+5:30 (limit 6:00), O2 left 44 % (reserve 15 %).",
   "replan_ms": {
    "kind": "slow",
-   "ms": 20.100000000093132,
-   "worker_ms": 18.300000000046566,
+   "ms": 21.399999999906868,
+   "worker_ms": 17.20000000006985,
    "stops": [
     2,
     5,
@@ -51,7 +51,7 @@
    ]
   },
   "hud_after_play": "T+1:28 of 6:00",
-  "hud_replan_sep": "SOLAR PARTICLE EVENT ALERT (replay; alert type from NASA DONKI, proxy) at T+1:41.\nRe-planned in 113 ms: stop work, walk straight to the habitat by the fastest safe route. Time to shelter 39 min (limit 60 min) \u2192 rule met. Left for a later EVA: Wildcat Ridge, Skinner Ridge, Three Forks sample depot.",
+  "hud_replan_sep": "SOLAR PARTICLE EVENT ALERT (replay; alert type from NASA DONKI, proxy) at T+1:41.\nRe-planned in 112 ms: stop work, walk straight to the habitat by the fastest safe route. Time to shelter 39 min (limit 60 min) \u2192 rule met. Left for a later EVA: Wildcat Ridge, Skinner Ridge, Three Forks sample depot.",
   "assumptions_tables": 3,
   "sources_tables": 4,
   "tablet_horizontal_overflow_px": 0

@@ -61,6 +61,7 @@ Full list with exact URLs: `docs/DATA_SOURCES.md`.
 - Three Forks depot data: NASA PDS Geosciences Node.
 - Solar particle events: NASA CCMC DONKI.
 - Map library: Leaflet 1.9.4 (BSD-2-Clause), vendored in `site/vendor/leaflet/`.
+- Typefaces: Barlow and Barlow Condensed (SIL Open Font License 1.1), vendored in `site/vendor/fonts/`.
 - Science stop sites: NASA PDS Geosciences Node, Mars 2020 Initial Reports (sample dossier).
 - Human-factors and suit numbers: NASA xEVA ConOps (EVA-EXP-0042), NASA BVAD (TP-2015-218570 Rev 2), Waligora & Horrigan 1975 (Apollo metabolic data), Apollo EMU Operations Handbook. Radiation: NASA PIA17600 and NASA Science (May 2024 storm). Full list: `docs/DATA_SOURCES.md`.
 

@@ -159,3 +159,43 @@ export function tornado(target, t) {
   el(s, 'line', { x1: X(t.base_duration_min), x2: X(t.base_duration_min), y1: box.t, y2: box.b, stroke: C.text });
   target.replaceChildren(s);
 }
+
+// ---------------------------------------------------------------- EVA timeline strip (under the map)
+// One lane: thin bars = walking, tall numbered blocks = work at stop n (same numbers as the map).
+export function strip(target, rows, limitMin, colorOf, numOf, p95) {
+  const W = Math.max(320, Math.round(target.clientWidth || 900)), H = 74;
+  const box = { l: 6, r: W - 8, t: 14, b: 44 };
+  const s = svg(W, H);
+  s.setAttribute('aria-label', 'EVA timeline: walking and work blocks against the time limit');
+  const end = rows.at(-1)?.t1_min ?? 0;
+  const tmax = Math.max(limitMin, end, p95 || 0) + 30;
+  const X = scale(0, tmax, box.l, box.r);
+  const g = el(s, 'g', { class: 'grid' });
+  for (let m = 0; m <= tmax; m += 30) {
+    el(g, 'line', { x1: X(m), x2: X(m), y1: box.t, y2: box.b + (m % 60 ? 3 : 7) });
+    if (m % 60 === 0) el(s, 'text', { x: X(m) + 2, y: box.b + 20 }, `${m / 60} h`);
+  }
+  const mid = (box.t + box.b) / 2;
+  for (const r of rows) {
+    const x0 = X(r.t0_min), w = Math.max(1.5, X(r.t1_min) - x0);
+    if (r.kind === 'walk') {
+      const b = el(s, 'rect', { x: x0, y: mid - 4, width: w, height: 8, fill: '#6f8396', rx: 1 });
+      el(b, 'title', {}, `Walk to ${r.to}: ${r.t0_min.toFixed(0)}-${r.t1_min.toFixed(0)} min`);
+    } else {
+      const b = el(s, 'rect', { x: x0, y: box.t, width: w, height: box.b - box.t, fill: colorOf(r), rx: 2, stroke: '#1a232d', 'stroke-width': 1 });
+      el(b, 'title', {}, `${r.name}: ${r.t0_min.toFixed(0)}-${r.t1_min.toFixed(0)} min`);
+      if (w > 16) el(s, 'text', { x: x0 + w / 2, y: mid + 6, 'text-anchor': 'middle', style: 'fill:#111;font-weight:700;font-size:16px;font-family:var(--cond)' }, String(numOf(r)));
+    }
+  }
+  // planned return, risk (P95) and the hard limit
+  el(s, 'line', { x1: X(end), x2: X(end), y1: box.t - 6, y2: box.b + 4, stroke: '#e9eef3', 'stroke-width': 2 });
+  el(s, 'text', { x: X(end) - 4, y: box.t - 4, 'text-anchor': 'end', style: 'fill:#e9eef3' }, 'home');
+  if (p95) {
+    el(s, 'line', { x1: X(end), x2: X(p95), y1: box.t - 9, y2: box.t - 9, stroke: C.sky, 'stroke-width': 2 });
+    el(s, 'line', { x1: X(p95), x2: X(p95), y1: box.t - 12, y2: box.b + 4, stroke: C.sky, 'stroke-width': 2, 'stroke-dasharray': '3 2' });
+    el(s, 'text', { x: X(p95) + 4, y: box.t - 4, style: `fill:${C.sky}` }, '95 % back');
+  }
+  el(s, 'line', { x1: X(limitMin), x2: X(limitMin), y1: 0, y2: box.b + 7, stroke: C.verm, 'stroke-width': 3 });
+  el(s, 'text', { x: X(limitMin) + 6, y: box.b - 3, style: `fill:#ff9d5c;font-weight:600` }, `${limitMin / 60} h limit`);
+  target.replaceChildren(s);
+}

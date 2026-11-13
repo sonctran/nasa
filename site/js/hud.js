@@ -99,7 +99,7 @@ export function initHUD(A) {
         Re-planned in <b>${wall.toFixed(0)} ms</b>: stop work, walk straight to the habitat by the fastest safe route.
         Time to shelter <b>${walk.toFixed(0)} min</b> (limit ${lim} min) → <b style="color:${walk <= lim ? '#3fbf8f' : '#ff6b5b'}">${walk <= lim ? 'rule met' : 'RULE BROKEN'}</b>.
         ${dropped.length ? 'Left for a later EVA: ' + dropped.join(', ') + '.' : ''}`;
-      showAlert('danger', 'SEP ALERT · GO TO SHELTER');
+      showAlert('danger', 'SOLAR STORM ALERT: GO TO SHELTER');
     } else {
       const what = kind === 'slow' ? `Slow crew: pace ×${H.f.speed.toFixed(2)}, tasks ×${H.f.work.toFixed(2)}` : `Suit O2 fault: O2 use ×${H.f.o2.toFixed(1)}`;
       msg = `<b>${what}</b> (assumption) at T+${fmtT(T)}${finishing ? ', after finishing ' + finishing.name : ''}.<br>
@@ -167,17 +167,17 @@ export function initHUD(A) {
     const dx = tgtXY[0] - st.xy[0], dy = tgtXY[1] - st.xy[1];
     const dist = Math.hypot(dx, dy);
     const brg = (Math.atan2(dx, dy) * 180 / Math.PI + 360) % 360;
-    $('#hud-next').textContent = (row.kind === 'work' && H.T < row.t1) ? 'AT ' + row.name.replace(/ \(.*\)/, '').toUpperCase() : (nextRow ? target.name.replace(/ \(.*\)/, '') : 'HABITAT');
+    $('#hud-next').textContent = (row.kind === 'work' && H.T < row.t1) ? 'At ' + row.name.replace(/ \(.*\)/, '') : (nextRow ? target.name.replace(/ \(.*\)/, '') : 'Habitat');
     $('#hud-dist').textContent = dist < 15 ? 'here' : `${Math.round(dist)} m`;
     $('#hud-brg').textContent = dist < 15 ? '' : `bearing ${String(Math.round(brg)).padStart(3, '0')}° (straight line)`;
     $('#hud-left').textContent = fmtT(limitS - H.T);
-    $('#hud-home').textContent = `${Math.round(st.back_s / 60)} min · shelter limit ${A.cur.shelterMin}`;
+    $('#hud-home').textContent = `${Math.round(st.back_s / 60)} min (storm-shelter limit ${A.cur.shelterMin} min)`;
     const o2pct = 100 * (cap - reserve - st.o2) / cap;
     const el = $('#hud-o2'); el.textContent = `${Math.max(0, o2pct).toFixed(0)} %`; el.style.color = o2pct < 10 ? '#ff6b5b' : '';
     $('#hud-bat').textContent = `${Math.max(0, 100 * (1 - draw * H.T / 3600 / bat)).toFixed(0)} %`;
     const g = A.grid, i = E.xyToIdx(g, st.xy[0], st.xy[1]);
     const tEl = $('#hud-terrain');
-    tEl.textContent = `slope ${g.slope[i].toFixed(0)}° · elev ${g.elev[i].toFixed(0)} m`;
+    tEl.textContent = `slope ${g.slope[i].toFixed(0)}°, height ${g.elev[i].toFixed(0)} m`;
     tEl.style.color = g.slope[i] > slopeCaution ? '#f0e442' : '';
     $('#hud-task').textContent = row.kind === 'work' && H.T < row.t1 ? (row.task || '').slice(0, 42) : (H.T >= tr.end ? 'EVA complete' : 'walking');
     $('#hud-clock').textContent = `T+${fmtT(H.T)} of ${fmtT(limitS)}`;

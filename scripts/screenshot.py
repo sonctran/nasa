@@ -3,7 +3,8 @@ screenshots and record every console error, failed request and timing.
 
 Run:  python scripts/screenshot.py            (Windows: .\\.venv\\Scripts\\python.exe scripts\\screenshot.py)
 Needs: pip install playwright, then once:  python -m playwright install chromium
-Output: docs/screenshots/*.jpg and docs/screenshots/report.json. Exit code 1 if any console error.
+Output: docs/screenshots/*.jpg and docs/screenshots/report.json (or the folder given with --out).
+Exit code 1 if any console error.
 """
 from __future__ import annotations
 
@@ -36,6 +37,9 @@ def serve() -> tuple[http.server.ThreadingHTTPServer, str]:
 
 
 def main() -> int:
+    global OUT
+    if "--out" in sys.argv:
+        OUT = Path(sys.argv[sys.argv.index("--out") + 1]).resolve()
     OUT.mkdir(parents=True, exist_ok=True)
     httpd, url = serve()
     rep: dict = {"url": url, "console_errors": [], "console_warnings": [], "page_errors": [], "failed_requests": [],
@@ -70,8 +74,8 @@ def main() -> int:
         page.wait_for_load_state("networkidle")
         rep["timing_ms"]["network_idle"] = round(1000 * (time.perf_counter() - t0))
         page.wait_for_timeout(500)
-        rep["dom"]["go_chip"] = page.inner_text("#gochip")
-        rep["dom"]["live_result"] = page.inner_text("#live .kpis")
+        rep["dom"]["go_chip"] = page.inner_text("#poll")
+        rep["dom"]["live_result"] = page.inner_text("#live .facts")
         rep["dom"]["live_status"] = page.inner_text("#live-status")
         shot("01_first_screen_plan")
 
@@ -103,10 +107,12 @@ def main() -> int:
         page.locator("[data-drive='1']").click()
         page.wait_for_timeout(600)
         shot("07_checks_rover_validation")
+        page.click("#drive-clear")
 
         # layers: slope on, legend, cursor readout
         page.click("nav.tabs button[data-tab=plan]")
-        page.evaluate("window.__marswalk.map.fitBounds([[900,1000],[2500,2900]])")
+        page.evaluate("window.__marswalk.map.fitBounds([[700,1250],[2250,2800]])")
+        page.click(".leaflet-top.leaflet-right .mctl .toggle")      # open the Layers panel
         page.check("input[data-r=slope]")
         page.locator("input[data-op=slope]").fill("0.7")
         page.mouse.move(520, 450)
@@ -114,6 +120,7 @@ def main() -> int:
         rep["dom"]["cursor_readout"] = page.inner_text("#readout")
         shot("08_slope_layer_legend_readout")
         page.uncheck("input[data-r=slope]")
+        page.click(".leaflet-top.leaflet-right .mctl .toggle")      # close it again
 
         # live re-plan: add Hidden Harbor, a waypoint and a keep-out box; change the slope rule
         t1 = time.perf_counter()
@@ -121,8 +128,8 @@ def main() -> int:
         page.wait_for_function("window.__marswalk.res && window.__marswalk.res.order.length === 7", timeout=10000)
         rep["timing_ms"]["replan_add_stop_roundtrip"] = round(1000 * (time.perf_counter() - t1))
         page.wait_for_timeout(300)
-        rep["dom"]["after_add_hidden_harbor"] = page.inner_text("#live .kpis")
-        rep["dom"]["after_add_go_chip"] = page.inner_text("#gochip")
+        rep["dom"]["after_add_hidden_harbor"] = page.inner_text("#live .facts")
+        rep["dom"]["after_add_go_chip"] = page.inner_text(".verdict")
         shot("09_live_replan_add_stop")
         page.click("#reset")
         page.wait_for_function("window.__marswalk.res && window.__marswalk.res.order.length === 6", timeout=10000)
@@ -193,7 +200,7 @@ def main() -> int:
     (OUT / "report.json").write_text(json.dumps(rep, indent=1), encoding="utf-8")
     bad = rep["console_errors"] + rep["page_errors"] + rep["failed_requests"] + rep["http_errors"]
     print(json.dumps({k: rep[k] for k in ("timing_ms", "console_errors", "page_errors", "failed_requests", "http_errors")}, indent=1))
-    print(f"{len(rep['shots'])} screenshots in {OUT.relative_to(ROOT)}; {len(bad)} errors")
+    print(f"{len(rep['shots'])} screenshots in {OUT}; {len(bad)} errors")
     return 1 if bad else 0
 
 

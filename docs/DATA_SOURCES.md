@@ -65,6 +65,7 @@ No new data was downloaded in Phase 3. The app reads only the processed files li
 | Item | Provider | Exact source | Version / date | Licence / credit | Use |
 |---|---|---|---|---|---|
 | Leaflet map library | Volodymyr Agafonkin and contributors | npm package `leaflet@1.9.4` (`npm pack`, files `dist/leaflet.js`, `dist/leaflet.css`, `dist/images/*`) | 1.9.4, fetched 2026-11-13 | BSD-2-Clause, copied to `site/vendor/leaflet/LICENSE` | Map display (vendored, no CDN) |
+| Barlow and Barlow Condensed typefaces | The Barlow Project Authors (github.com/jpt/barlow, per the licence file) | npm `@fontsource/barlow@5.2.8`, `@fontsource/barlow-condensed@5.2.8` (latin woff2: Barlow 400/500/600, Condensed 500/600/700) | 5.2.8, fetched 2026-11-13 | SIL Open Font License 1.1, copied to `site/vendor/fonts/OFL-Barlow.txt` | Interface type (vendored, no CDN) |
 | `site/assets/data/params.json`, `roles.json` | this project | generated from `config/params.yaml` and `config/stops.yaml` by `python -m planner.export_site` | - | - | Model numbers for the browser engine; crew roles |
 | `site/assets/docs/*.md` | this project | copies of `docs/METHODS.md`, `ASSUMPTIONS.md`, `DATA_SOURCES.md` | - | - | Rendered on the Methods page |
 

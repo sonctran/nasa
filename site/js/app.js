@@ -13,8 +13,13 @@ const f0 = (v) => (v == null || !Number.isFinite(v) ? '-' : Math.round(v).toLoca
 const f1 = (v) => (v == null || !Number.isFinite(v) ? '-' : v.toFixed(1));
 const f2 = (v) => (v == null || !Number.isFinite(v) ? '-' : v.toFixed(2));
 const pct = (v, d = 1) => (v == null || !Number.isFinite(v) ? '-' : (100 * v).toFixed(d) + ' %');
-const hm = (min) => `${Math.floor(min / 60)} h ${String(Math.round(min % 60)).padStart(2, '0')} min`;
-const B = (k) => `<span class="badge ${k === 'owner-set' ? 'owner' : k}">${k}</span>`;
+const hm = (min) => { const m = Math.round(min); return m % 60 ? `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min` : `${m / 60} h`; };
+const TAGHELP = { real: 'Measured data', derived: 'Computed from real data by a stated method', modeled: "Output of this project's model",
+                  assumption: 'A value chosen without a verified source (listed in ASSUMPTIONS)', proxy: 'Data from somewhere else (Gale crater, the Moon, near-Earth space) standing in for Jezero',
+                  'owner-set': 'A mission-design choice by the project owner' };
+const B = (k) => `<span class="tag tag-${k === 'owner-set' ? 'owner' : k}" title="${TAGHELP[k] || ''}">${k}</span>`;
+const hmm = (min) => `${Math.floor(min / 60)}:${String(Math.round(min % 60)).padStart(2, '0')}`;   // clock time h:mm
+const sgn = (v, f) => (v >= 0 ? '+' : '−') + f(Math.abs(v));
 const pv = (k) => E.pv(A.params, k);
 const LL = (xy) => [xy[1], xy[0]];         // local metres (x east, y north) -> Leaflet [lat, lng]
 const CAT = {
@@ -24,6 +29,7 @@ const CAT = {
   depot: { col: Ch.C.green, label: 'Sample depot (required)' },
   waypoint: { col: Ch.C.yellow, label: 'Your waypoint' },
 };
+const LABEL_DIR = { wildcat_ridge: 'left', amalik: 'left', hidden_harbor: 'left' };
 const ROUTE = Ch.C.yellow, SEPCOL = Ch.C.purple;   // plan route / SEP-rule violations
 const ROUTE_COL = { fastest: Ch.C.orange, lowest_energy: Ch.C.blue, safest: Ch.C.green, balanced: Ch.C.sky, shortest: Ch.C.grey };
 
@@ -100,9 +106,9 @@ function setupMap() {
                              attributionControl: true, preferCanvas: false });
   A.map = map;
   map.attributionControl.setPrefix(false);
-  map.attributionControl.addAttribution('HiRISE: NASA/JPL-Caltech/Univ. of Arizona · DTM/ortho mosaic: USGS (Fergason et al. 2020) · Rover data: NASA/JPL-Caltech · <a href="methods.html#sources">all credits</a>');
+  map.attributionControl.addAttribution('HiRISE: NASA/JPL-Caltech/Univ. of Arizona; DTM and image mosaic: USGS (Fergason et al. 2020); rover data: NASA/JPL-Caltech; <a href="methods.html#sources">all credits</a>');
   const b = A.layers.layers[0].bounds;
-  map.fitBounds([[760, 1250], [2250, 2800]]);
+  map.fitBounds([[700, 1250], [2250, 2800]]);   // habitat (y 965 m) and its label stay in view
   map.setMaxBounds([[-600, -600], [b[1][0] + 600, b[1][1] + 600]]);
   // raster layers
   const defaults = { ortho: 1, hillshade: 0, elevation: 0, slope: 0, roughness: 0, nogo: 0.55, themis_day: 0, themis_night: 0 };
@@ -122,11 +128,11 @@ function setupMap() {
   A.vec.traverse = { title: 'Perseverance traverse', kind: 'real', g: tr, on: true };
   const wp = L.layerGroup();
   for (const p of A.vectors.waypoints.points) L.circleMarker(LL([p.x, p.y]), { radius: 2, color: '#fff', weight: 1, fillOpacity: 0.8 })
-    .bindTooltip(`Rover waypoint ${esc(p.rmc)} · sol ${p.sol}`).addTo(wp);
+    .bindTooltip(`Rover waypoint ${esc(p.rmc)}, sol ${p.sol}`).addTo(wp);
   A.vec.waypoints = { title: 'Rover waypoints', kind: 'real', g: wp, on: false };
   const dp = L.layerGroup();
   for (const p of A.vectors.depot_tubes.points) L.circleMarker(LL([p.x, p.y]), { radius: 4, color: '#111', weight: 1, fillColor: Ch.C.green, fillOpacity: 1 })
-    .bindTooltip(`${esc(p.name)} (${esc(p.sample)}) · dropped sol ${p.drop_sol}<br>rover position at drop, not the tube itself`).addTo(dp);
+    .bindTooltip(`${esc(p.name)} (${esc(p.sample)}), dropped sol ${p.drop_sol}<br>rover position at drop, not the tube itself`).addTo(dp);
   A.vec.depot = { title: 'Depot tubes (10)', kind: 'real', g: dp, on: true };
   const pov = L.layerGroup();
   for (const ph of A.vectors.pov.photos) L.circleMarker(LL([ph.x, ph.y]), { radius: 5, color: '#111', weight: 1, fillColor: '#fff', fillOpacity: 0.9 })
@@ -151,8 +157,8 @@ function setupMap() {
 function photoHTML(ph, distM) {
   const d = distM != null ? `<br>Nearest rover photo: taken ${f0(distM)} m from this stop.` : '';
   return `<img class="photo" src="assets/${esc(ph.file)}" alt="Perseverance ${esc(ph.instrument)} image, sol ${ph.sol}" loading="lazy">
-    <div class="credit">Image: ${esc(ph.credit)} · ${esc(ph.instrument)} · sol ${ph.sol} · rover site ${ph.site}${d}
-    <br><a href="${esc(ph.page)}" target="_blank" rel="noopener">raw image page</a> <span class="badge real">real</span></div>`;
+    <div class="credit">Image: ${esc(ph.credit)}, ${esc(ph.instrument)}, sol ${ph.sol}, rover site ${ph.site}${d}
+    <br><a href="${esc(ph.page)}" target="_blank" rel="noopener">raw image page</a> ${B('real')}</div>`;
 }
 
 function layerControl() {
@@ -160,12 +166,12 @@ function layerControl() {
     onAdd() {
       const d = L.DomUtil.create('div', 'mctl');
       L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
-      let html = '<button class="toggle" type="button" aria-label="Hide layers">–</button><h4>Layers</h4><div class="body">';
+      let html = '<button class="toggle" type="button" aria-label="Hide layers">–</button><h4>Layers</h4><div class="body"><div class="grp">Images and terrain</div>';
       for (const [id, r] of Object.entries(A.raster)) {
         html += `<div class="lyr"><label title="${esc(r.lyr.processing || '')}"><input type="checkbox" data-r="${id}" ${r.on ? 'checked' : ''}> ${esc(r.lyr.title)} ${B(r.lyr.kind)}</label>
                  <input type="range" min="0" max="1" step="0.05" value="${r.opacity}" data-op="${id}" aria-label="${esc(r.lyr.title)} opacity"></div>`;
       }
-      html += '<hr style="border-color:#2c333d">';
+      html += '<div class="grp">Mission data</div>';
       for (const [id, v] of Object.entries(A.vec)) {
         if (id === 'extra') continue;
         html += `<div class="lyr"><label><input type="checkbox" data-v="${id}" ${v.on ? 'checked' : ''}> ${esc(v.title)} ${B(v.kind)}</label><span></span></div>`;
@@ -185,7 +191,7 @@ function layerControl() {
       d.querySelectorAll('[data-v]').forEach((cb) => cb.onchange = () => {
         const v = A.vec[cb.dataset.v]; v.on = cb.checked; v.on ? v.g.addTo(A.map) : v.g.remove();
       });
-      if (window.innerWidth < 1100) { d.classList.add('collapsed'); tg.textContent = '+'; }
+      d.classList.add('collapsed'); tg.textContent = '+'; tg.setAttribute('aria-label', 'Show layers');
       return d;
     },
   });
@@ -198,7 +204,7 @@ function reorderLayers() {
 
 function legendControl() {
   const Ctl = L.Control.extend({
-    onAdd() { const d = L.DomUtil.create('div', 'mctl'); d.id = 'legend'; L.DomEvent.disableClickPropagation(d); return d; },
+    onAdd() { const d = L.DomUtil.create('div', 'mctl'); d.id = 'legend'; L.DomEvent.disableClickPropagation(d); if (window.innerWidth < 1100) d.classList.add('collapsed'); return d; },
   });
   new Ctl({ position: 'bottomleft' }).addTo(A.map);
   updateLegend();
@@ -206,7 +212,7 @@ function legendControl() {
 function updateLegend() {
   const d = $('#legend');
   if (!d) return;
-  let html = '<h4>Legend</h4>';
+  let html = `<button class="toggle" type="button" aria-label="Show or hide the map key">${d.classList.contains('collapsed') ? '+' : '–'}</button><h4>Map key</h4><div class="mapkey body">`;
   for (const id of ['elevation', 'slope', 'roughness']) {
     const r = A.raster[id];
     if (!r.on || !r.lyr.legend) continue;
@@ -216,44 +222,49 @@ function updateLegend() {
   }
   if (A.raster.nogo.on) html += `<div><span class="sw" style="background:${A.raster.nogo.lyr.color}"></span>No-go: slope &gt; ${A.cur ? A.cur.slopeNogo : 20}° or roughness &gt; 0.2 m ${B('assumption')}</div>
     <div class="small muted">Map layer drawn at the default 20°; the planner uses the slider value.</div>`;
-  html += `<div><span class="sw" style="background:${ROUTE}"></span>Your plan route ${B('modeled')}</div>
-    <div><span class="sw" style="background:#fff;border-radius:50%"></span>Tightest walk-back point</div>
-    <div><span class="sw" style="background:${SEPCOL}"></span>Too far from shelter (SEP rule)</div>
-    <div><span class="sw" style="background:#fff"></span>Perseverance traverse ${B('real')}</div>`;
+  html += `<div><span class="ln"></span>Walking route of the plan ${B('modeled')}</div>
+    <div><span class="sw" style="background:${Ch.C.orange};border-radius:50%"></span>Numbered circle: stop, in visit order</div>
+    <div><span class="sw" style="background:transparent;border:2px solid #fff;border-radius:50%"></span>Tightest walk-back point</div>
+    <div><span class="ln" style="border-top-color:${SEPCOL}"></span>Too far from shelter (storm rule)</div>
+    <div><span class="ln" style="border-top:2px dashed #fff"></span>Perseverance's real drive ${B('real')}</div></div>`;
   d.innerHTML = html;
+  const tg = d.querySelector('.toggle');
+  tg.onclick = () => { d.classList.toggle('collapsed'); tg.textContent = d.classList.contains('collapsed') ? '+' : '–'; };
 }
 
 function readoutControl() {
   const Ctl = L.Control.extend({
-    onAdd() { const d = L.DomUtil.create('div', 'mctl readout'); d.id = 'readout'; d.innerHTML = '<h4>Cursor</h4><div class="small muted">Move the mouse over the map</div>'; return d; },
+    onAdd() { const d = L.DomUtil.create('div', 'mctl readout'); d.id = 'readout'; d.innerHTML = '<h4>Point under the cursor</h4><div class="small muted">Move over the map to read height and slope</div>'; return d; },
   });
   new Ctl({ position: 'topleft' }).addTo(A.map);
 }
 function updateReadout(ll) {
   const x = ll.lng, y = ll.lat, g = A.grid;
   const d = $('#readout');
-  if (x < 0 || y < 0 || x >= 4000 || y >= 4000) { d.innerHTML = '<h4>Cursor</h4><div class="small muted">outside the study area</div>'; return; }
+  if (x < 0 || y < 0 || x >= 4000 || y >= 4000) { d.innerHTML = '<h4>Point under the cursor</h4><div class="small muted">Outside the 4 km study area</div>'; return; }
   const i = E.xyToIdx(g, x, y);
   const nogo = g.nodata[i] || g.slope[i] > A.cur.slopeNogo || g.rough[i] > pv('terrain.roughness_nogo_m');
-  d.innerHTML = `<h4>Cursor (10 m cell)</h4>x ${f0(x)} m · y ${f0(y)} m<br>Elevation ${f1(g.elev[i])} m ${B('real')}<br>
-    Slope ${f1(g.slope[i])}° · roughness ${f2(g.rough[i])} m ${B('derived')}<br>${nogo ? '<b style="color:#ff6b5b">No-go cell</b>' : 'Walkable'}`;
+  d.innerHTML = `<h4>Point under the cursor (10 m cell)</h4>x ${f0(x)} m, y ${f0(y)} m<br>Elevation ${f1(g.elev[i])} m ${B('real')}<br>
+    Slope ${f1(g.slope[i])}°, roughness ${f2(g.rough[i])} m ${B('derived')}<br>${nogo ? '<b style="color:#ff9d5c">Too steep or rough to walk</b>' : 'Walkable'}`;
 }
 
 // ---------------------------------------------------------------- markers & routes
 function stopIcon(s, num) {
   const c = CAT[s.kind === 'depot' ? 'depot' : s.category]?.col || '#fff';
-  return L.divIcon({ className: '', html: `<div class="stopicon" style="background:${c}">${num ?? '·'}</div>`, iconSize: [24, 24], iconAnchor: [12, 12] });
+  return L.divIcon({ className: '', html: `<div class="stopicon" style="background:${c}">${num ?? '·'}</div>`, iconSize: [26, 26], iconAnchor: [13, 13] });
 }
 function drawStops() {
   const g = A.vec.stops.g;
   g.clearLayers();
   const hab = A.plan.sites[0];
-  L.marker(LL([hab.x, hab.y]), { icon: L.divIcon({ className: '', html: '<div class="habicon">H</div>', iconSize: [26, 26], iconAnchor: [13, 13] }) })
-    .bindTooltip('Habitat (start, finish and the only shelter). Site chosen by a stated rule, DECISIONS T29.').addTo(g);
+  L.marker(LL([hab.x, hab.y]), { icon: L.divIcon({ className: '', html: '<div class="habicon">H</div>', iconSize: [28, 28], iconAnchor: [14, 14] }) })
+    .bindTooltip('Habitat and shelter', { permanent: true, direction: 'right', offset: [16, 0], className: 'maplabel' }).addTo(g);
   A.plan.sites.slice(1).forEach((s) => {
     const pos = A.cur.order.indexOf(s.id);
-    const m = L.marker(LL([s.x, s.y]), { icon: stopIcon(s, pos >= 0 ? pos + 1 : null), riseOnHover: true })
-      .bindTooltip(`${esc(s.name)} · ${s.value} pts · ${s.dwell_min} min${pos < 0 ? ' · not in plan' : ''}`);
+    const short = s.name.replace(/ \(.*\)/, '').replace('Three Forks sample depot', 'Sample depot (10 tubes)');
+    const m = L.marker(LL([s.x, s.y]), { icon: stopIcon(s, pos >= 0 ? pos + 1 : null), riseOnHover: true });
+    if (pos >= 0) m.bindTooltip(esc(short), { permanent: true, direction: LABEL_DIR[s.id] || 'right', offset: [LABEL_DIR[s.id] === 'left' ? -15 : 15, 0], className: 'maplabel' });
+    else m.bindTooltip(`${esc(s.name)}: ${s.value} pts, ${s.dwell_min} min of work, not in the plan`);
     m.on('click', () => { openTab('stops'); const el = document.getElementById('card-' + s.id); el?.scrollIntoView({ behavior: 'smooth' }); });
     m.addTo(g);
   });
@@ -357,8 +368,8 @@ async function replan() {
     drawRoute(); drawStops(); renderLive(); renderSchedule(); renderSafety(); renderStops(); renderGo();
   } catch (err) {
     if (my !== reqNo) return;
-    if (status) status.innerHTML = `<span style="color:#ff6b5b">${esc(err.message)}</span>`;
-    $('#gochip').className = 'gochip nogo'; $('#gochip').textContent = 'NO-GO (no route)';
+    if (status) status.innerHTML = `<span style="color:#ff9d5c">${esc(err.message)}</span>`;
+    $('#poll').innerHTML = `<div class="verdict nogo"><span class="word">NO-GO</span><span class="why">No safe route: ${esc(err.message)}</span></div>`;
   }
 }
 
@@ -379,11 +390,38 @@ function checklist() {
   ];
   return { go: items.every((i) => i[1]), items };
 }
+// GO / NO-GO poll board: one station per rule, same rules and order as checklist()
+let lastPoll = null;
 function renderGo() {
-  const c = checklist();
-  const chip = $('#gochip');
-  chip.className = 'gochip ' + (c.go ? 'go' : 'nogo');
-  chip.textContent = c.go ? 'GO · all 9 checks pass' : `NO-GO · ${c.items.filter((i) => !i[1]).length} check(s) fail`;
+  const c = checklist(), ev = A.res.eval, s = ev.safety, t = ev.totals, mc = A.res.mc;
+  const st = [
+    ['EVA length', `${f0(t.duration_min)} min`, `limit ${A.limitMin} min`, 'modeled'],
+    ['Home on time', pct(mc.p_success), `of ${f0(mc.runs)} runs`, 'modeled'],
+    ['Walk-back O2', `${sgn(s.walkback.min_o2_margin_pct_of_capacity, f1)} %`, 'tank spare', 'modeled'],
+    ['Walk-back time', `${sgn(s.walkback.min_time_margin_min, f0)} min`, 'spare', 'modeled'],
+    ['Storm shelter', `${f0(s.sep.max_walk_home_min)} min`, `limit ${A.cur.shelterMin} min`, 'assumption'],
+    ['Steepest step', `${f1(t.max_slope_deg)}°`, `limit ${A.cur.slopeNogo}°`, 'modeled'],
+    ['O2 left at return', `${f0(s.consumables.o2_left_pct)} %`, `reserve ${f0(100 * pv('consumables.o2_reserve_fraction'))} %`, 'modeled'],
+    ['Battery left', `${f0(s.consumables.battery_left_pct)} %`, 'at return', 'assumption'],
+    ['Sample tubes', A.cur.order.includes('depot') ? 'collected' : 'left behind', `${A.vectors.depot_tubes.points.length} tubes`, 'owner-set'],
+  ];
+  const fails = c.items.filter((i) => !i[1]).length;
+  const now = c.items.map((i) => i[1]);
+  const ch = (k) => (lastPoll && lastPoll[k] !== now[k] ? ' changed' : '');
+  const goCh = lastPoll && lastPoll.every(Boolean) !== c.go ? ' changed' : '';
+  $('#poll').innerHTML = `<div class="verdict ${c.go ? 'go' : 'nogo'}${goCh}" role="button" tabindex="0" title="Open the safety rules">
+      <span class="word">${c.go ? 'GO' : 'NO-GO'}</span><span class="why">${c.go ? 'for EVA: all 9 safety rules pass' : `${fails} of 9 safety rules fail`} ${B('modeled')}</span></div>` +
+    c.items.map(([rule, ok, detail], k) => `<button class="station ${ok ? 'pass' : 'fail'}${ch(k)}" type="button" title="${esc(rule)}: ${esc(detail)}">
+      <span class="glyph" aria-label="${ok ? 'pass' : 'fail'}">${ok ? '✓' : '✕'}</span><span class="name">${st[k][0]}</span>
+      <span class="val">${st[k][1]}</span><span class="sub">${st[k][2]} ${B(st[k][3])}</span></button>`).join('');
+  lastPoll = now;
+  $('#poll').querySelectorAll('.station, .verdict').forEach((b) => b.onclick = () => openTab('safety'));
+  renderStrip();
+}
+function renderStrip() {
+  const ev = A.res.eval, mc = A.res.mc, t = ev.totals;
+  Ch.strip($('#strip-svg'), ev.rows, A.limitMin, colorOfRow, (r) => A.cur.order.indexOf(r.at) + 1, mc.duration_min.p95);
+  $('#strip-sub').innerHTML = `planned return at <b>${hm(t.duration_min)}</b> of the ${hm(A.limitMin)} limit; 95 % of ${f0(mc.runs)} simulated EVAs are back by <b>${hm(mc.duration_min.p95)}</b> ${B('modeled')}`;
 }
 
 // ---------------------------------------------------------------- tabs
@@ -396,26 +434,21 @@ function openTab(id) {
   document.querySelectorAll('.tabpane').forEach((p) => { p.hidden = p.id !== 'tab-' + id; });
 }
 A.openTab = openTab;
+window.addEventListener('resize', () => { if (A.res) renderStrip(); });
 
 function renderStaticPanels() {
   const P = A.plan, rp = P.plan, mc = P.montecarlo;
   const names = rp.order.map((id) => siteById(id).name.replace(/ \(.*\)/, ''));
   $('#tab-plan').innerHTML = `
-    <h2>Recommended plan ${B('modeled')}</h2>
-    <p>${names.map(esc).join(' → ')}</p>
-    <div class="kpis">
-      <div class="kpi"><div class="v">${rp.value} pts</div><div class="l">science value ${B('owner-set')}</div></div>
-      <div class="kpi"><div class="v">${f0(rp.totals.duration_min)} min</div><div class="l">of ${A.limitMin} min limit</div></div>
-      <div class="kpi"><div class="v">${pct(mc.p_success)}</div><div class="l">home on time, ${f0(mc.runs)} runs</div></div>
-      <div class="kpi"><div class="v">${f2(rp.totals.dist_m / 1000)} km</div><div class="l">walked</div></div>
-      <div class="kpi"><div class="v">${f0(rp.totals.walk_min)} + ${f0(rp.totals.work_min)}</div><div class="l">min walking + work</div></div>
-      <div class="kpi"><div class="v">${f0(P.safety.walkback.min_time_margin_min)} min</div><div class="l">tightest walk-back margin</div></div>
-    </div>
-    <p class="small muted">The "Robust" rule: the most science points whose chance of getting home on time (with O2 above reserve) is at least ${Math.round(pv('schedule.robust_p_on_time') * 100)} % ${B('owner-set')}.
-      Stop choice and order solved exactly with OR-Tools CP-SAT (${P.robust_plan.solver_status.toLowerCase()}, ${f0(P.robust_plan.solve_ms)} ms) by the Python planner.</p>
+    <h2>The plan on the map ${B('modeled')}</h2>
+    <p class="lede" id="plan-lede">Planning…</p>
+    <table class="cuff" id="cuff" aria-label="EVA step by step"></table>
+    <div class="ref">The optimizer's pick (Python, OR-Tools CP-SAT, proven optimal in ${f0(P.robust_plan.solve_ms)} ms): ${names.slice(1, -1).map(esc).join(', ')}.
+      ${rp.value} science points, ${f0(rp.totals.duration_min)} of ${A.limitMin} min, home on time in ${pct(mc.p_success)} of ${f0(mc.runs)} runs.
+      Its rule: the most science whose chance of getting home on time is at least ${Math.round(pv('schedule.robust_p_on_time') * 100)} % ${B('owner-set')}.</div>
 
-    <h2>Your plan (live) ${B('modeled')}</h2>
-    <p class="small muted">Change anything below: the route, timeline, safety checks and a ${f0(pv('montecarlo.runs'))}-run Monte Carlo are recomputed in your browser (Web Worker).</p>
+    <div class="section"><h2>Change the plan</h2>
+    <p class="small muted">Everything on this page, including a new ${f0(pv('montecarlo.runs'))}-run risk simulation, is recomputed in your browser in about 0.3 s.</p>
     <div class="row"><label>Start from a candidate plan <select id="cand"></select></label></div>
     <ul class="stoplist" id="stoplist"></ul>
     <div class="row" id="addstops"></div>
@@ -427,7 +460,7 @@ function renderStaticPanels() {
     </div>
     <h3>Route weights ${B('assumption')}</h3>
     <div class="row"><label>Profile <select id="profile">
-      <option value="balanced">Balanced (equal weights)</option><option value="fastest">Fastest (= lowest energy)</option>
+      <option value="balanced">Balanced (equal weights, recommended)</option><option value="fastest">Fastest (= lowest energy)</option>
       <option value="safest">Safest</option><option value="shortest">Shortest distance (naive)</option><option value="custom">Custom</option></select></label></div>
     <div class="slider"><span>Time</span><input type="range" id="w0" min="0" max="1" step="0.05"><output id="w0o"></output></div>
     <div class="slider"><span>Energy</span><input type="range" id="w1" min="0" max="1" step="0.05"><output id="w1o"></output></div>
@@ -436,18 +469,18 @@ function renderStaticPanels() {
     <div class="slider"><span>No-go slope</span><input type="range" id="slope" min="10" max="25" step="1"><output id="slopeo"></output></div>
     <div class="slider"><span>SEP shelter limit</span><input type="range" id="shelter" min="20" max="90" step="5"><output id="sheltero"></output></div>
     <p class="small muted">No-go slope default 20° (NASA xEVA ConOps walking slope); roughness limit 0.2 m (assumption). SEP limit default 60 min (assumption).</p>
-    <div id="live"></div>
+    <div id="live"></div></div>
 
-    <h2>Route options for the recommended stops ${B('modeled')}</h2>
+    <div class="section"><h2>Other ways to walk the same stops ${B('modeled')}</h2>
     <p class="small muted">Precomputed by the Python planner (same stops, different weights). Click a row to show it on the map.</p>
     <div id="alts"></div>
-    <h2>Trade-off: time vs hazard (Pareto set) ${B('modeled')}</h2>
+    <h2>Trade-off: walking time against hazard ${B('modeled')}</h2>
     <div id="pareto"></div>
     <p class="small muted">Each dot is the best route for one weight setting (hazard weight 0 → 0.95). Filled dots are not beaten on both axes.
-      Hazard exposure = minutes walked × hazard index (0 below 10° and 0.05 m roughness, 1 at the no-go limit). Energy is not a separate axis: with the constant-power pacing rule, walking energy = 352 W × time.</p>`;
+      Hazard exposure = minutes walked × hazard index (0 below 10° and 0.05 m roughness, 1 at the no-go limit). Energy is not a separate axis: with the constant-power pacing rule, walking energy = 352 W × time.</p></div>`;
   // candidates
   const sel = $('#cand');
-  const cands = P.candidates.map((c) => ({ ...c, label: `${c.value} pts: ${c.stops.map((id) => siteById(id).name.replace(/ \(.*\)/, '')).join(', ')} · ${pct(c.p_success, 1)} on time${c.value === P.robust_plan.value ? ' (recommended)' : ''}` }));
+  const cands = P.candidates.map((c) => ({ ...c, label: `${c.value} pts: ${c.stops.map((id) => siteById(id).name.replace(/ \(.*\)/, '')).join(', ')}, ${pct(c.p_success, 1)} on time${c.value === P.robust_plan.value ? ' (recommended)' : ''}` }));
   sel.innerHTML = cands.map((c, i) => `<option value="${i}" ${c.value === P.robust_plan.value ? 'selected' : ''}>${esc(c.label)}</option>`).join('');
   sel.onchange = () => { const c = cands[+sel.value]; A.cur.order = c.order.slice(1, -1).map((k) => P.sites[k].id).concat(A.cur.waypoints.map((w) => w.id)); renderEditor(); drawStops(); scheduleReplan(); };
   document.querySelectorAll('[data-mode]').forEach((b) => b.onclick = () => setMode(b.dataset.mode));
@@ -495,7 +528,7 @@ function renderEditor() {
     A.cur.order.map((id, i) => {
       const s = siteById(id);
       const c = s ? CAT[s.kind === 'depot' ? 'depot' : s.category].col : Ch.C.yellow;
-      const extra = s ? `${s.value} pts · ${s.dwell_min} min` : 'pass through';
+      const extra = s ? `${s.value} pts, ${s.dwell_min} min` : 'pass through';
       return `<li><span class="n" style="background:${c}">${i + 1}</span><span class="nm">${esc(nameOf(id))} <span class="small muted">${extra}</span></span>
         <button data-up="${i}" title="Move earlier" aria-label="Move ${esc(nameOf(id))} earlier">↑</button><button data-dn="${i}" title="Move later" aria-label="Move later">↓</button><button data-rm="${i}" title="Remove" aria-label="Remove">✕</button></li>`;
     }).join('') + `<li><span class="n" style="background:${Ch.C.sky}">H</span><span class="nm">Habitat (finish)</span></li>`;
@@ -516,15 +549,26 @@ function renderLive() {
   const ev = A.res.eval, t = ev.totals, mc = A.res.mc, T = A.res.timing;
   const value = A.cur.order.reduce((a, id) => a + (siteById(id)?.value || 0), 0);
   const snapped = A.res.snapped.length ? `<p class="warn">Moved to the nearest safe cell: ${A.res.snapped.map((id) => esc(nameOf(id))).join(', ')}.</p>` : '';
-  $('#live').innerHTML = `<h3>Result ${B('modeled')}</h3>${snapped}
-    <div class="kpis">
-      <div class="kpi"><div class="v">${value} pts</div><div class="l">science value</div></div>
-      <div class="kpi"><div class="v" style="color:${t.duration_min <= A.limitMin ? 'inherit' : '#ff6b5b'}">${f0(t.duration_min)} min</div><div class="l">of ${A.limitMin} min (${f0(t.walk_min)} walk)</div></div>
-      <div class="kpi"><div class="v">${pct(mc.p_success)}</div><div class="l">home on time, ${f0(mc.runs)} runs</div></div>
-      <div class="kpi"><div class="v">${f2(t.dist_m / 1000)} km</div><div class="l">walked, +${f0(t.gain_m)} m climb</div></div>
-      <div class="kpi"><div class="v">${f0(t.walk_energy_kcal)} kcal</div><div class="l">walking energy (per person)</div></div>
-      <div class="kpi"><div class="v">${f1(t.max_slope_deg)}°</div><div class="l">max cell slope · ${f1(t.caution_min)} caution min</div></div>
-    </div>
+  const stops = A.cur.order.filter((id) => siteById(id)?.kind === 'stop').length;
+  const depot = A.cur.order.includes('depot');
+  $('#plan-lede').innerHTML = `<b>${value} science points</b> from ${stops} stop${stops === 1 ? '' : 's'}${depot ? ' plus the sample-tube pickup' : ', <b style="color:#ff9d5c">without the sample-tube pickup</b>'}.
+    ${f2(t.dist_m / 1000)} km on foot; back at the habitat after <b>${hm(t.duration_min)}</b> of the ${hm(A.limitMin)} limit.
+    <b>${pct(mc.p_success)}</b> of ${f0(mc.runs)} simulated EVAs get home on time ${B('modeled')}.`;
+  const num = (id) => A.cur.order.indexOf(id) + 1;
+  const last = ev.rows.at(-1);
+  $('#cuff').innerHTML = `<tr><th>Time</th><th>What happens</th><th style="text-align:right">Detail</th></tr>` + ev.rows.map((r) => r.kind === 'walk'
+    ? `<tr class="walk"><td class="t">${hmm(r.t0_min)}</td><td class="ev">Walk to ${esc(nameOf(r.to).replace(/ \(.*\)/, ''))}</td><td class="d">${f2(r.dist_m / 1000)} km, ${f0(r.t1_min - r.t0_min)} min</td></tr>`
+    : `<tr class="work"><td class="t">${hmm(r.t0_min)}</td><td class="ev"><span class="n stopn" style="background:${colorOfRow(r)}">${num(r.at)}</span>${esc(r.name.replace(/ \(.*\)/, ''))}</td><td class="d">${f0(r.t1_min - r.t0_min)} min work</td></tr>`).join('') +
+    `<tr class="home"><td class="t">${hmm(last.t1_min)}</td><td class="ev">Back at the habitat</td><td class="d">O2 left ${f0(ev.safety.consumables.o2_left_pct)} %</td></tr>`;
+  $('#live').innerHTML = `<h3>Your plan in numbers ${B('modeled')}</h3>${snapped}
+    <dl class="facts">
+      <dt>Science value</dt><dd>${value} pts ${B('owner-set')}</dd>
+      <dt>Duration</dt><dd style="color:${t.duration_min <= A.limitMin ? 'inherit' : '#ff9d5c'}">${f0(t.duration_min)} of ${A.limitMin} min (${f0(t.walk_min)} min walking, ${f0(t.work_min)} min work)</dd>
+      <dt>Distance</dt><dd>${f2(t.dist_m / 1000)} km, ${f0(t.gain_m)} m of climbing</dd>
+      <dt>Walking energy</dt><dd>${f0(t.walk_energy_kcal)} kcal per person</dd>
+      <dt>Steepest 10 m cell</dt><dd>${f1(t.max_slope_deg)}°, ${f1(t.caution_min)} min on caution ground</dd>
+      <dt>Home on time</dt><dd>${pct(mc.p_success)} of ${f0(mc.runs)} runs</dd>
+    </dl>
     <p class="small muted" id="live-status">Computed in your browser in ${f0(T.total_ms)} ms: A* ${f0(T.astar_ms)} ms (${f0(T.expanded)} cells expanded), walk-home field ${f0(T.field_ms)} ms, Monte Carlo ${f0(T.mc_ms)} ms.
     ${A.res.rules ? `Rules rebuilt in ${f0(A.res.rules.build_ms)} ms (no-go share ${pct(A.res.rules.nogo_share)}).` : ''}
     The browser Monte Carlo uses its own random numbers, so it can differ from the Python result by about ±0.3 %.</p>`;
@@ -583,10 +627,10 @@ function renderStops() {
       const tubes = s.kind === 'depot' ? `<p class="small">${A.vectors.depot_tubes.points.length} tubes: ${A.vectors.depot_tubes.points.map((t) => esc(t.name)).join(', ')} (dropped sols ${A.vectors.depot_tubes.points[0].drop_sol}-${A.vectors.depot_tubes.points.at(-1).drop_sol}). ${esc(A.vectors.depot_tubes.note)}</p>` : '';
       return `<div class="card" id="card-${s.id}">
         <h3><span class="sw" style="background:${c.col}"></span>${esc(s.name)} ${pos >= 0 ? `<span class="badge modeled">stop ${pos + 1} in your plan</span>` : '<span class="badge derived">not in plan</span>'}</h3>
-        <div class="small">${esc(c.label)} · <b>${s.value} pts</b> ${B('owner-set')} · work ${s.dwell_min} min ${B('assumption')} · ${s.work_w} W work rate · walk home ${f0(s.walk_home_min)} min ${B('modeled')}${s.sep_ok ? '' : ' · <b style="color:#ff6b5b">outside the SEP shelter limit</b>'}</div>
+        <div class="small">${esc(c.label)}, <b>${s.value} pts</b> ${B('owner-set')}, work ${s.dwell_min} min ${B('assumption')}, ${s.work_w} W work rate, walk home ${f0(s.walk_home_min)} min ${B('modeled')}${s.sep_ok ? '' : ', <b style="color:#ff6b5b">outside the SEP shelter limit</b>'}</div>
         ${s.task ? `<p><b>Task:</b> ${esc(s.task)}</p>` : ''}
         ${s.why_category ? `<p><b>Science goal:</b> ${esc(s.why_category)}</p>` : ''}
-        ${s.quote ? `<blockquote>"${esc(s.quote)}"</blockquote><div class="credit">${esc(s.source)}${s.samples ? ' · samples: ' + esc(s.samples) : ''}</div>` : `<div class="credit">${esc(s.source || '')}</div>`}
+        ${s.quote ? `<blockquote>"${esc(s.quote)}"</blockquote><div class="credit">${esc(s.source)}${s.samples ? ', samples: ' + esc(s.samples) : ''}</div>` : `<div class="credit">${esc(s.source || '')}</div>`}
         ${s.look_for ? `<p><b>What to look for:</b> ${esc(s.look_for)}</p>` : ''}
         ${tubes}
         ${np ? `<details ${s.kind !== 'depot' ? 'open' : ''}><summary class="small">What you'll see (rover photo)</summary>${photoHTML(np.p, np.d)}</details>` : ''}
@@ -626,7 +670,7 @@ function renderSafety() {
     <p><b>${f0(s.dose.background_ugy)} µGy</b> absorbed dose for this ${f0(ev.totals.duration_min)} min EVA, from the Curiosity RAD background of ${rate} µGy/day measured at Gale crater (NASA PIA17600), not Jezero.
       For scale: NASA says astronauts on Mars during the 20 May 2024 storm would have received <b>${may.toLocaleString('en-US')} µGy</b>, about ${f0(may / rate)} days of background, which is why the shelter rule exists. Dose equivalent (mSv) is not estimated.</p>
     <h2>Consumables at return ${B('modeled')}</h2>
-    <p>O2 left ${f0(s.consumables.o2_left_pct)} % (${f2(s.consumables.o2_used_kg)} kg used of ${pv('consumables.o2_capacity_kg')} kg) · battery left ${f0(s.consumables.battery_left_pct)} %.</p>
+    <p>O2 left ${f0(s.consumables.o2_left_pct)} % (${f2(s.consumables.o2_used_kg)} kg used of ${pv('consumables.o2_capacity_kg')} kg), battery left ${f0(s.consumables.battery_left_pct)} %.</p>
     <p class="small muted">Python reference for the recommended plan: tightest margin ${f0(P.safety.walkback.min_time_margin_min)} min / ${f1(P.safety.walkback.min_o2_margin_pct_of_capacity)} % O2, farthest from shelter ${f0(P.safety.sep.max_walk_home_min)} min.</p>`;
   $('#show-tight').onclick = () => { const xy = s.walkback.at_time_xy; if (xy) A.map.setView(LL(xy), 1); };
   $('#sep-replay').onclick = () => A.hud.open({ sepReplay: true });
@@ -658,7 +702,7 @@ function renderChecks() {
     g.clearLayers();
     for (const ln of d.rover_xy) L.polyline(ln.map(LL), { color: '#fff', weight: 4 }).bindTooltip('Real rover path').addTo(g);
     L.polyline(d.options.balanced.xy.map(LL), { color: Ch.C.sky, weight: 3 }).bindTooltip('Planned (Balanced)').addTo(g);
-    L.polyline([LL(d.start_xy), LL(d.end_xy)], { color: Ch.C.purple, weight: 2, dashArray: '5 5' }).bindTooltip('Straight line').addTo(g);
+    L.polyline([LL(d.start_xy), LL(d.end_xy)], { color: '#a9b6c3', weight: 2, dashArray: '5 5' }).bindTooltip('Straight line').addTo(g);
     A.map.fitBounds(L.latLngBounds(d.rover_xy.flat().map(LL)).pad(0.2));
   });
 }
