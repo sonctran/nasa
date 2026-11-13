@@ -14,8 +14,8 @@ mission:
   eva_time_limit:
     value: 6.0
     unit: h
-    source_or_assumption: assumption
-    note: "Chosen by owner in Phase 0 (door-to-door). Phase 2: look for a NASA source; if none is verified, keep labeled 'assumption'."
+    source_or_assumption: "owner-set; matches NASA EVA-EXP-0042 Rev B (xEVA System ConOps, 2020) p.37: 'EVAs will be between 4 and 8 hours in length (6+/-2 hours)'. https://ntrs.nasa.gov/api/citations/20205008200/downloads/EVA-EXP-0042%20xEVA%20System%20Con%20Ops%20Rev%20B%20Final%20dtd%2010192020_REF%20DOC.pdf"
+    note: "Door to door. The ConOps is for lunar xEVA; we apply the same nominal length on Mars."
   crew_size:
     value: 2
     unit: astronauts
@@ -117,8 +117,8 @@ terrain:
   slope_nogo_deg:
     value: 20
     unit: deg
-    source_or_assumption: assumption
-    note: "Placeholder suited-walking slope limit. No NASA source verified yet (Phase 2 checks NASA-STD-3001 / HIDH). Exposed as a slider in the app."
+    source_or_assumption: "NASA EVA-EXP-0042 Rev B (xEVA System ConOps, 2020) p.39: 'Walking up/down/across a slope of up to 20 deg [Note: Apollo 15 traversed on slopes of ~17 deg]'. https://ntrs.nasa.gov/api/citations/20205008200/downloads/EVA-EXP-0042%20xEVA%20System%20Con%20Ops%20Rev%20B%20Final%20dtd%2010192020_REF%20DOC.pdf"
+    note: "A lunar suit capability, applied to Mars (heavier suit weight there, so it may be optimistic). Applied to the P90 slope of each 10 m cell. Slider in the app."
   roughness_nogo_m:
     value: 0.2
     unit: m RMS
@@ -139,3 +139,248 @@ terrain:
     unit: percentile
     source_or_assumption: assumption
     note: "Each 10 m web cell keeps the 90th-percentile slope and roughness of its 25 analysis cells, so a cell that is partly steep still counts as steep (conservative)."
+
+# ---------------------------------------------------------------------------
+# Phase 2: planning engine. Sources were read on 2026-11-13 (see docs/ASSUMPTIONS.md).
+# Tobler (1993) and Minetti et al. (2002) could NOT be read (bot checks), so they are
+# NOT used (DECISIONS T27). The model below uses only NASA numbers plus labelled assumptions.
+# ---------------------------------------------------------------------------
+human_factors:
+  level_speed_mps:
+    value: 0.5556
+    unit: m/s
+    source_or_assumption: "NASA EVA-EXP-0042 Rev B (xEVA ConOps) p.40: 'Traverses assume an ~2 km/hr walking pace over relatively level regolith'. https://ntrs.nasa.gov/api/citations/20205008200/downloads/EVA-EXP-0042%20xEVA%20System%20Con%20Ops%20Rev%20B%20Final%20dtd%2010192020_REF%20DOC.pdf"
+    note: "2 km/h. Lunar planning pace, applied to Mars (assumption). Apollo 14 EVA-2 measured 2.47 km/h overall (Waligora & Horrigan 1975, Table 4), so 2 km/h is cautious."
+  level_metabolic_rate_w:
+    value: 352
+    unit: W
+    source_or_assumption: "NASA/TP-2015-218570 Rev 2 (BVAD, 2022) p.135: 'The xEMU average design metabolic rate is 1.27 MJ/CM-h (352 W)'. https://ntrs.nasa.gov/api/citations/20210024855/downloads/BVAD_2.15.22-final.pdf"
+    note: "Used as the level-walking rate at 2 km/h. Cross-check: Apollo 14 EVA-2 walking traverses averaged 354 W (CDR 1233, LMP 1318 x 10^3 J/h; Waligora & Horrigan 1975 Table 4). NASA reports Mars gravity needs higher rates than lunar (no numbers readable), so this may be low: the Monte Carlo spread covers part of that."
+  uphill_muscle_efficiency:
+    value: 0.25
+    unit: "-"
+    source_or_assumption: assumption
+    note: "Share of metabolic energy that becomes lifting work when walking uphill. Typical textbook figure for positive muscle work; not checked against a paper in this project. Extra uphill energy = mass x g_Mars x height gained / efficiency."
+  downhill_energy_credit:
+    value: 0.0
+    unit: "-"
+    source_or_assumption: assumption
+    note: "Downhill costs the same energy per metre as level ground (no credit, no extra braking cost). Simple and slightly cautious on gentle slopes."
+  pacing_rule:
+    value: constant_power
+    unit: "-"
+    source_or_assumption: assumption
+    note: "Uphill the crew slows down so metabolic power stays at the level-walking rate; never faster than the level pace (also downhill). Checked against Apollo 14 traverse legs in METHODS.md."
+  mars_gravity_mps2:
+    value: 3.710
+    unit: m/s^2
+    source_or_assumption: "BVAD (NASA/TP-2015-218570 Rev 2) Table 4-66, p.132. https://ntrs.nasa.gov/api/citations/20210024855/downloads/BVAD_2.15.22-final.pdf"
+    note: "0.379 of Earth."
+  earth_gravity_mps2:
+    value: 9.798
+    unit: m/s^2
+    source_or_assumption: "BVAD Table 4-66, p.132. https://ntrs.nasa.gov/api/citations/20210024855/downloads/BVAD_2.15.22-final.pdf"
+    note: "Only used for weight comparisons."
+  moon_gravity_mps2:
+    value: 1.620
+    unit: m/s^2
+    source_or_assumption: "BVAD Table 4-66, p.132. https://ntrs.nasa.gov/api/citations/20210024855/downloads/BVAD_2.15.22-final.pdf"
+    note: "Only used to check the walking model against Apollo 14 data."
+  crew_body_mass_kg:
+    value: 82.0
+    unit: kg
+    source_or_assumption: "BVAD Table 4-68, p.132 (human mass used in NASA's suit-weight table). https://ntrs.nasa.gov/api/citations/20210024855/downloads/BVAD_2.15.22-final.pdf"
+    note: "One crew member."
+  suit_mass_kg:
+    value: 90.7
+    unit: kg
+    source_or_assumption: "BVAD Table 4-67, p.132: 'Apollo Program Spacesuit, A7LB 90.7 kg' (with -7 PLSS). https://ntrs.nasa.gov/api/citations/20210024855/downloads/BVAD_2.15.22-final.pdf"
+    note: "No Mars suit mass is published that we could verify; we use the Apollo A7LB system, the suit flown for 8 h lunar EVAs. BVAD Table 4-68 gives this suit + human on Mars as 172.7 kg, 643 N."
+  carried_kit_kg:
+    value: 10.0
+    unit: kg
+    source_or_assumption: assumption
+    note: "Tools, sample bags and the recovered tubes. No source."
+
+work_metabolic_rate:
+  science_stop_w:
+    value: 283
+    unit: W
+    source_or_assumption: "Waligora & Horrigan (1975), 'Metabolism and heat dissipation during Apollo EVA periods', Table 2, mean 'Geological station activity' 1018 x 10^3 J/hr (244 kcal/hr) over 52.47 h. https://ntrs.nasa.gov/api/citations/19760005584/downloads/19760005584.pdf"
+    note: "Apollo 11-17 lunar data, used for work at science stops on Mars (assumption that the work is similar)."
+  depot_pickup_w:
+    value: 312
+    unit: W
+    source_or_assumption: "Waligora & Horrigan (1975) Table 2, mean 'Overhead' 1123 x 10^3 J/hr (270 kcal/hr); overhead includes 'stowage of lunar samples'. https://ntrs.nasa.gov/api/citations/19760005584/downloads/19760005584.pdf"
+    note: "Used for picking up and stowing the 10 depot tubes."
+
+consumables:
+  o2_kg_per_mj:
+    value: 0.0810
+    unit: kg O2 per MJ metabolic
+    source_or_assumption: "Derived from BVAD Table 4-70, p.135: oxygen consumption 0.086 kg/CM-h at 1.062 MJ/CM-h (295 W, respiratory quotient 0.90). 0.086 / 1.062 = 0.0810. https://ntrs.nasa.gov/api/citations/20210024855/downloads/BVAD_2.15.22-final.pdf"
+    note: "Our arithmetic on NASA numbers. Leakage is not modelled."
+  o2_capacity_kg:
+    value: 0.823
+    unit: kg usable O2 per suit
+    source_or_assumption: "assumption, derived: 8 h x 352 W x 0.0810 kg/MJ. 8 h = xEMU design life ('designed for 8-hour autonomous performance', NASA ICES-2026-126 p.3) and 352 W = xEMU average design rate (BVAD p.135)."
+    note: "No verified Mars-suit tank size. Cross-check: the Apollo -7 PLSS held 'a minimum of 1.340 pounds' (0.608 kg) usable O2, 'ample for a 5-hour EVA at 1200-Btu/hr' (Apollo EMU Operations Handbook CSD-A-789, p.2-89, https://ntrs.nasa.gov/api/citations/19730064704/downloads/19730064704.pdf)."
+  o2_reserve_fraction:
+    value: 0.15
+    unit: fraction of capacity
+    source_or_assumption: assumption
+    note: "Oxygen that must still be left when the crew gets home, even on the walk-back from the worst point. About 1 h at the design rate. No source."
+  battery_capacity_wh:
+    value: 387.5
+    unit: W h
+    source_or_assumption: "Apollo EMU Operations Handbook CSD-A-789 Rev V: 'The minimum capacity of the -7 PLSS power supply is 387.5 watt-hours'. https://ntrs.nasa.gov/api/citations/19730064704/downloads/19730064704.pdf"
+    note: "Apollo backpack battery, used as a stand-in."
+  battery_draw_w:
+    value: 48.4
+    unit: W
+    source_or_assumption: assumption
+    note: "387.5 W h spread over the 8 h design life. Constant: fans, pumps and radios do not follow the crew's workload in this model."
+
+walkback:
+  rule:
+    value: walk_home_on_remaining_consumables
+    unit: "-"
+    source_or_assumption: "Apollo rule (Bellcomm, 1969, p.5): 'In event of an LRV failure, the crewmen shall be able to walk back to the LM on the consumables remaining in the PLSS.' https://ntrs.nasa.gov/api/citations/19700009560/downloads/19700009560.pdf"
+    note: "Checked at every 10 m cell of the route: O2 left minus O2 to walk home by the fastest route must stay above the reserve, and elapsed time plus walk-home time must stay within the EVA limit."
+
+sep:
+  shelter_time_limit_min:
+    value: 60
+    unit: min
+    source_or_assumption: assumption
+    note: "During a solar particle event alert the crew must be able to reach the habitat (the only shelter) within this time by the fastest route. No NASA requirement found. Slider in the app."
+  background_dose_rate_ugy_per_day:
+    value: 210
+    unit: microgray per day (absorbed dose)
+    source_or_assumption: "NASA PIA17600 'Radiation Measurements on Mars' (2013): galactic cosmic rays 'contribute a slowly varying dose rate of about 210 micrograys per day' (Curiosity RAD, Aug 2012 - Jun 2013). https://science.nasa.gov/photojournal/radiation-measurements-on-mars/"
+    note: "PROXY: measured at Gale crater, not Jezero. Absorbed dose only (the dose-equivalent figure could not be verified)."
+  may2024_event_dose_ugy:
+    value: 8100
+    unit: microgray (event total)
+    source_or_assumption: "NASA, 'What NASA Is Learning from the Biggest Geomagnetic Storm in 20 Years' (2025): 'If astronauts had been there, they would have received a radiation dose of 8,100 micrograys'. https://science.nasa.gov/science-research/heliophysics/what-nasa-is-learning-from-the-biggest-geomagnetic-storm-in-20-years/"
+    note: "PROXY (Gale crater). Event of 20 May 2024 (NASA PIA26302). Shown as context in the SEP replay; the time profile is not known, so no in-EVA SEP dose is modelled."
+
+hazard:
+  slope_caution_deg:
+    value: 10
+    unit: deg
+    source_or_assumption: assumption
+    note: "Hazard index starts rising here and reaches 1 at the 20 deg no-go limit. Half the NASA limit; no source."
+  roughness_caution_m:
+    value: 0.05
+    unit: m RMS
+    source_or_assumption: assumption
+    note: "Hazard index starts rising here (about the 75th percentile of the 10 m grid) and reaches 1 at the 0.2 m no-go limit."
+
+route_options:   # weights on (time, energy, hazard, distance); time/energy/hazard in 'equivalent level metres'
+  fastest:
+    value: [1.0, 0.0, 0.0, 0.0]
+    unit: weights
+    source_or_assumption: assumption
+    note: "Minimum walking time."
+  lowest_energy:
+    value: [0.0, 1.0, 0.0, 0.0]
+    unit: weights
+    source_or_assumption: assumption
+    note: "Minimum metabolic energy (and oxygen). Under the constant-power pacing rule, walking energy = power x time, so this gives the SAME route as Fastest (shown once as 'Fastest = lowest energy')."
+  safest:
+    value: [0.05, 0.05, 0.9, 0.0]
+    unit: weights
+    source_or_assumption: assumption
+    note: "Minimum hazard exposure; small time/energy weights break ties and keep every edge cost > 0."
+  balanced:
+    value: [0.3333, 0.3333, 0.3334, 0.0]
+    unit: weights
+    source_or_assumption: assumption
+    note: "Equal weights. Used for the plan of record and for the stop schedule."
+  shortest:
+    value: [0.0, 0.0, 0.0, 1.0]
+    unit: weights
+    source_or_assumption: assumption
+    note: "Naive baseline: shortest map distance that avoids no-go cells, ignoring slope and hazard. Shows what the cost model adds."
+  pareto_hazard_step:
+    value: 0.05
+    unit: weight step
+    source_or_assumption: assumption
+    note: "Sweep of the hazard weight w_H from 0 to 0.95 (time weight = 1 - w_H) to draw the time-vs-hazard Pareto chart. Energy is not swept separately because it is proportional to walking time in this model."
+
+habitat:
+  distance_from_depot_m:
+    value: [900, 1100]
+    unit: m
+    source_or_assumption: owner-set
+    note: "Mission story (S3): habitat on the flat crater floor. Rule: the cell east of the depot, 900-1100 m away, whose 100 m x 100 m neighbourhood has the lowest maximum slope (DECISIONS T29)."
+  pad_size_m:
+    value: 110
+    unit: m
+    source_or_assumption: assumption
+    note: "Neighbourhood (11 x 11 cells of 10 m) used to judge flatness."
+
+schedule:
+  depot_pickup_min:
+    value: 50
+    unit: min
+    source_or_assumption: assumption
+    note: "Pick up, check and stow all 10 tubes (about 5 min each). No source."
+  dwell_fine_grained_layered_rock_min:
+    value: 45
+    unit: min
+    source_or_assumption: assumption
+    note: "Describe, photograph, sample. No source."
+  dwell_delta_layer_sequence_min:
+    value: 30
+    unit: min
+    source_or_assumption: assumption
+    note: "Describe and photograph the layers. No source."
+  dwell_transported_boulders_min:
+    value: 20
+    unit: min
+    source_or_assumption: assumption
+    note: "Photograph and sample boulders. No source."
+  robust_p_on_time:
+    value: 0.95
+    unit: probability
+    source_or_assumption: owner-set
+    note: "Son's 'Robust plan' upgrade (S4): the recommended plan must get home within the EVA limit in at least 95% of Monte Carlo runs."
+  budget_fractions:
+    value: [0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.00]
+    unit: fraction of EVA limit
+    source_or_assumption: assumption
+    note: "Time budgets given to the optimizer; each budget gives one candidate plan for the robust ranking."
+
+montecarlo:
+  runs:
+    value: 20000
+    unit: runs
+    source_or_assumption: assumption
+    note: "SPEC asks for 2,000+."
+  seed:
+    value: 20261114
+    unit: "-"
+    source_or_assumption: assumption
+    note: "Fixed so results are reproducible."
+  speed_sigma:
+    value: 0.15
+    unit: log-normal sigma
+    source_or_assumption: assumption
+    note: "Whole-EVA walking-speed factor (median 1). Apollo 14 leg speeds varied from 0.69 to 5.7 km/h, so real spread is large; no fitted value."
+  metabolic_sigma:
+    value: 0.20
+    unit: log-normal sigma
+    source_or_assumption: assumption
+    note: "Whole-EVA metabolic-rate factor (median 1). Apollo station-work rates ranged 244-351 kcal/h between crew members in Waligora Table 2."
+  dwell_sigma:
+    value: 0.30
+    unit: log-normal sigma
+    source_or_assumption: assumption
+    note: "Each stop's work time varies on its own (median 1). Field tasks often run long; no source."
+  tornado_quantile:
+    value: 0.10
+    unit: quantile
+    source_or_assumption: assumption
+    note: "Tornado bars show each input at its 10th and 90th percentile."

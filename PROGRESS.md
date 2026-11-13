@@ -1,6 +1,42 @@
 # PROGRESS
 
-## Current status: Phase 1 (data pipeline): COMPLETE, waiting for Son to review the previews. Next: Phase 2 (planning engine), when Son says so.
+## Current status: Phase 2 (planning engine): COMPLETE. Next: Phase 3 (web app), when Son says so.
+
+### Done in Phase 2 (Fri 2026-11-13, ~2 h 45 min)
+**One command:** `python -m planner.run_plan` (about 11 s). It writes `site/assets/data/plan.json` (81 KB, for the app), `data/processed/plan_full.json`, previews `data/processed/previews/20_plan_map.png`, `21_plan_charts.png`, `22_validation_rover.png`, and regenerates `docs/ASSUMPTIONS.md` from `config/params.yaml`.
+
+Code (`planner/`): `grid.py` (10 m browser grid, 16-connected moves, no corner cutting), `cost.py` (walking time/energy/hazard), `astar.py` (A* + Dijkstra helpers), `stops_ortools.py` (OR-Tools CP-SAT orienteering + brute-force checker), `montecarlo.py` (20,000-run risk model + tornado), `safety.py` (walk-home field, O2), `validate.py` (vs rover traverse), `run_plan.py` (everything end to end), `plots.py`, `write_docs.py`. Config: `config/stops.yaml` (6 real science sites with quotes), `config/apollo14_table4.csv`. Docs: `docs/METHODS.md`, `docs/ASSUMPTIONS.md` (generated), new Phase 2 section in `docs/DATA_SOURCES.md`, DECISIONS T27-T38.
+
+### Phase 2 results (plain English, all MODELED; real numbers from `plan.json`)
+- **The recommended ("Robust") plan:** Habitat → Amalik → Hidden Harbor → Wildcat Ridge → Three Forks depot (pick up the 10 tubes) → Habitat. **30 science points, 3.17 km, 286 min planned** (100 min walking + 185 min work) out of a 6 h (360 min) limit.
+- **Chance of getting home on time** (with O2 above the reserve): **95.0 %** (± 0.15 %, 20,000 Monte Carlo runs). This *just* meets Son's 95 % target. Median EVA 293 min, P95 354 min.
+- **The trade-off:** adding Skinner Ridge (+6 points, only 23 m from Wildcat Ridge) gives the 36-point "Max-science" plan: 317 min planned, but only **79.8 %** chance of getting home on time. A smaller plan (depot, Skinner Ridge, Wildcat Ridge, Amalik: 26 points, 267 min) gets home on time in 98.2 % of runs.
+- **What drives the risk:** work time, not walking. Tornado swing on EVA length: depot work 39 min, walking speed 39 min, each science stop 36 min.
+- **Route options for the same stops:** Fastest 285.4 min, Balanced 285.5 min, Safest 286.4 min, Shortest-distance 286.4 min. The Safest route costs +0.9 min and +27 m versus Fastest, but cuts time on caution terrain (slope > 10° or rough) from **15.6 to 1.0 min**. Fastest = Lowest-energy in this model (see DECISIONS T32). Pareto sweep: 12 distinct non-dominated routes.
+- **Tightest reserve point:** near the depot, 259 min into the EVA, 26 min walk from home. Margins there: **74 min** of time, and **32 % of the O2 tank** above the 15 % reserve. At return: 47 % O2 and 41 % battery left (modeled).
+- **SEP shelter rule (60 min, assumption):** the farthest point of the plan is 41 min from the habitat, so there are 0 violations. The two delta-top stops (81 and 88 min away) are excluded. Without the rule, the 6 h optimum doesn't change.
+- **Radiation (Gale proxy):** 42 µGy absorbed for the EVA (210 µGy/day). The 20 May 2024 solar event would have been 8,100 µGy (NASA).
+- **Go/No-Go:** all 9 checks pass.
+- **Validation:**
+  - A* = Dijkstra exactly (0.0 relative difference on all 5 legs).
+  - CP-SAT = brute force on 25 random cases; every real plan was proven optimal in 2-12 ms.
+  - Max cell slope on the route is 14.3° (10 m grid); on the 2 m grid the max is 17.4°, with 0 % above 20°.
+  - Rover drives: crater floor → delta front, **53 %** of the planned path is within 25 m of Perseverance's real path (straight line 38 %). Delta-top climb: 36 % (straight line 30 %): **inconclusive**.
+  - Walking model vs Apollo 14 uphill legs: 2.12 vs 2.13 km/h mean.
+- **Tests: pytest 161 passed** (was 106). New: A* vs networkx on 12 random grids; A* vs scipy on the real grid; CP-SAT vs brute force on 25 instances; the cost model by hand; plan.json consistency (timeline continuous, totals add up, route joins the sites, rubric scores, 1 m DTM within 0.5 m of PDS core elevations).
+
+### Phase 2 known issues (for Son)
+1. **Tobler and Minetti could not be verified** (bot checks), so they are not used. The walking model uses NASA numbers plus 3 labelled assumptions (muscle efficiency 0.25, constant-power pacing, no downhill credit). If Son can open the two papers in a browser, we can add them as a second model (Phase 4).
+2. **Mars walking cost is probably underestimated.** The inputs are lunar/design values, and NASA reports higher rates in Mars gravity (charts only). The Monte Carlo spread covers part of this.
+3. **The Robust plan is borderline** (95.0 % vs a 95 % target). Small parameter changes can flip the recommendation to the 26-point plan (98.2 %). The app should show both.
+4. **Son should review the science categories** given to the 6 sites (DECISIONS T30) and the assumed work times (45/30/20 min, depot 50 min).
+5. Many safety values are assumptions: SEP 60 min, O2 reserve 15 %, O2 tank 0.823 kg, battery draw. All are listed in ASSUMPTIONS.md, and the app will expose the key ones as sliders.
+6. The delta-top rover comparison is inconclusive (see METHODS §9).
+7. Radiation: absorbed dose only (the mSv numbers could not be verified). No SEP dose is modelled during the EVA.
+8. DONKI has no cached 20 May 2024 entry (API rate limit, HTTP 429). The SEP replay can use a cached May 2024 near-Earth event (proxy), or retry with a personal api.nasa.gov key.
+9. Skinner Ridge's core site cell is not passable on the 10 m grid, so the stop sits on the nearest safe cell, 11.6 m away. All other sites are ≤ 7.1 m away.
+
+### Phase 1 record (data pipeline: COMPLETE)
 
 ### Done in Phase 1 (Fri 2026-11-13, ~1 h 20 min)
 **One command rebuilds everything:** `python -m pipeline.run_all` (download → layers → web export → previews). Tested from an empty `data/raw/`.
@@ -125,4 +161,4 @@ Cut first → last. The "Keep" list in SPEC §10 is unchanged.
 8. OR-Tools scheduling (cut last: priority #1; fallback = fixed stop order with timing)
 
 ## Next
-Phase 2 (planning engine), after Son reviews the Phase 1 previews.
+Phase 3 (web app): map + layers, A* Web Worker (must match Python on a fixture), plan/schedule/safety panels, HUD mode. Inputs are ready in `site/assets/data/` (`plan.json`, `cost_grid.bin`, `layers.json`, `vectors.json`).

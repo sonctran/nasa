@@ -1,0 +1,103 @@
+# Candidate science stops. Every location is a REAL Perseverance sampling site or image site.
+# Category -> points come from Son's rubric (params.yaml science_value, owner-set).
+# The category given to each site is a Claude Code judgement from the quoted NASA/PDS text
+# (DECISIONS T30) - Son should review it.
+#
+# Sources:
+#  DOS2 = Mars 2020 Initial Reports Vol. 2 (Delta Front), PDS Geosciences Node, sample dossier bundle
+#         https://pds-geosciences.wustl.edu/m2020/urn-nasa-pds-mars2020_sample_dossier/initial_reports/initial_reports_volume2.pdf
+#  DOS3 = Initial Reports Vol. 3 (Upper Fan), same folder: initial_reports_volume3.pdf
+#  Coordinates = "Latitude (N), Longitude (E), Elevation" of the core, as printed in the report.
+
+depot:
+  id: three_forks_depot
+  name: Three Forks sample depot
+  task: "Pick up the 10 cached sample tubes"
+  position_rule: "Mean rover position over the 10 tube drops (PDS sample_tube_locations.csv) = AOI anchor"
+  source: "PDS mars2020_sample_depot_three_forks, sample_tube_locations.csv"
+
+stops:
+  - id: wildcat_ridge
+    name: Wildcat Ridge
+    samples: "Hazeltop (sol 509) and Bearwallow (sol 516)"
+    category: fine_grained_layered_rock
+    lat: 18.45863707
+    lon: 77.40588851
+    elev_m: -2523.0974
+    source: "DOS2, report M2020-509-14 Hazeltop"
+    quote: "The outcrop is a horizontally layered, fine-grained, and well-sorted sedimentary rock; it is a sulfate-bearing coarse mudstone ... Thus, this rock has high potential for biosignature preservation."
+    why_category: "Layered, fine-grained mudstone that NASA says has high biosignature-preservation potential."
+    look_for: "Thin flat layers in fine-grained, light-toned rock; sulfate minerals; the same layers above and below the sampled spot."
+  - id: amalik
+    name: Amalik (Enchanted Lake member)
+    samples: "Shuyak (sol 575) and Mageik (sol 579)"
+    category: fine_grained_layered_rock
+    lat: 18.45068954
+    lon: 77.40143171
+    elev_m: -2526.322706
+    source: "DOS2, report M2020-575-16 Shuyak"
+    quote: "The outcrop is a horizontally layered, fine-grained, and well-sorted sedimentary rock; it is an olivine-bearing coarse mudstone ... likely deposited on to the floor of a lake."
+    why_category: "Layered, fine-grained lake-floor mudstone near the base of the delta."
+    look_for: "Fine layering; the light-toned, laminated Kaguyak sandstone about 1 m below; altered olivine grains."
+  - id: hidden_harbor
+    name: Hidden Harbor (Yori Pass member)
+    samples: "Kukaklek (sol 623)"
+    category: fine_grained_layered_rock
+    lat: 18.45363597
+    lon: 77.39911421
+    elev_m: -2517.093594
+    source: "DOS2, report M2020-623-19 Kukaklek"
+    quote: "The outcrop is a horizontally layered, fine-grained, and moderately sorted sedimentary rock; a sulfate-bearing fine sandstone"
+    why_category: "Layered and fine-grained (fine sandstone); the report rates its biosignature-preservation potential as high."
+    look_for: "Light-toned layered rock on its natural surface; sulfate cement."
+  - id: skinner_ridge
+    name: Skinner Ridge (Lower Rockytop member)
+    samples: "Swift Run (sol 490) and Skyland (sol 495)"
+    category: delta_layer_sequence
+    lat: 18.458931
+    lon: 77.40617078
+    elev_m: -2520.185
+    source: "DOS2, report M2020-490-11 Swift Run"
+    quote: "Skinner Ridge lies at the base of ~6.5 vertical meters of exposed sedimentary rock layers of Rockytop ... The outcrop is a horizontally layered, medium-grained clastic sedimentary rock"
+    why_category: "Medium-grained (not fine) sandstone at the base of a 6.5 m exposed stack of delta layers: shows how the deposits changed."
+    look_for: "The 6.5 m stack of Rockytop layers above; grain size changes between layers."
+  - id: melyn
+    name: Berea / Melyn (Upper Fan, delta top)
+    samples: "Melyn (sol 749)"
+    category: delta_layer_sequence
+    lat: 18.47021736
+    lon: 77.38394465
+    elev_m: -2448.912591
+    source: "DOS3, report M2020-749-22 Melyn"
+    quote: "Medium-grained sandstone with occasional clasts up to ~ 3 mm, likely deposited in a fluvial setting. Although layering is apparent in the cored outcrop"
+    why_category: "River (fluvial) sandstone on top of the delta: the river stage that followed the lake deposits below."
+    look_for: "Layering in the outcrop; small pebbles up to ~3 mm; carbonate alteration."
+  - id: boulder_field
+    name: Delta-top boulder field
+    samples: "none (Mastcam-Z image, sol 754)"
+    category: transported_boulders
+    position_rule: "rover position on sol 754 = last waypoint on or before sol 754 (M20_waypoints.json); the boulders are in the camera view, not exactly at this point"
+    waypoint_sol: 754
+    source: "NASA blog 'Look at All Those Boulders!' (2023-04-17) https://science.nasa.gov/blog/look-at-all-those-boulders/"
+    quote: "some of them were likely sourced from outside of Jezero crater. These boulders were washed down a river ... the boulders may have come from up to tens of kilometers away"
+    why_category: "Boulders NASA says were likely carried in by rivers from outside the crater: matches the rubric exactly."
+    look_for: "Rounded boulders of different rock types; compare with the layered rock below."
+
+# Crew roles in the timeline (buddy rule: EV1 and EV2 walk the same route together).
+# Operational plan text written for this project (assumption), not from a NASA procedure.
+roles:
+  walk:
+    EV1: "Lead: navigation, hazard call-outs"
+    EV2: "Follow within sight: consumables check, photo log"
+  depot:
+    EV1: "Pick up and inspect tubes, read tube IDs aloud"
+    EV2: "Bag and stow tubes, photo-document each drop zone"
+  fine_grained_layered_rock:
+    EV1: "Describe layers, choose sample spot, collect sample"
+    EV2: "Context and close-up photos, bag and label sample"
+  delta_layer_sequence:
+    EV1: "Describe and measure the layer stack"
+    EV2: "Panorama and scale photos"
+  transported_boulders:
+    EV1: "Pick representative boulders, collect chips"
+    EV2: "Photos with scale, record positions"

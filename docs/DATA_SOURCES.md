@@ -31,8 +31,28 @@ All files were fetched on **2026-11-13** (UTC) by `python -m pipeline.download`;
 | **Rover photos ("what you'll see")** · real | NASA/JPL-Caltech, Mars 2020 raw images | API: `https://mars.nasa.gov/rss/api/?feed=raw_images&category=mars2020&feedtype=json&sol=<sol>`. Each photo's own URL is in `site/assets/data/vectors.json` | 800 px browse JPEGs | 2026-11-13 | Per image, from the API: Mastcam-Z "NASA/JPL-Caltech/ASU"; Navcam "NASA/JPL-Caltech" | One photo per rover site in the AOI (22 of 24 sites). Rule: same site number, full frame ≥ 1200 × 900, colour Mastcam-Z first, then Navcam, mast elevation −20° to +3°, closest to −8°. **Raw, uncalibrated** frames (the Navcam ones look greenish). |
 | **Solar particle events** · proxy | NASA CCMC DONKI via api.nasa.gov | `https://api.nasa.gov/DONKI/SEP?startDate=2024-05-01&endDate=2024-06-29` (DEMO_KEY) | event list | 2026-11-13 | Space weather events: NASA CCMC DONKI | Cached as is in `site/assets/data/donki_sep_2024-05-01_2024-06-29.json` (27 events). These are **near-Earth detections, not measurements at Mars**. Used only for the SEP-alert replay (Phase 2-3). |
 
+## Phase 2 sources (planning engine)
+
+Read on 2026-11-13. Each value used is quoted in `config/params.yaml` / `config/stops.yaml` and listed in `docs/ASSUMPTIONS.md`.
+
+| Used for | Source | Exact URL read | What we took |
+|---|---|---|---|
+| **Science stop locations** · real | NASA PDS Geosciences Node, *Mars 2020 Initial Reports* Vol. 2 (Delta Front) and Vol. 3 (Upper Fan), bundle `urn:nasa:pds:mars2020_sample_dossier` | `https://pds-geosciences.wustl.edu/m2020/urn-nasa-pds-mars2020_sample_dossier/initial_reports/initial_reports_volume2.pdf` (and `..._volume3.pdf`) | Core-site latitude, longitude, elevation and lithology text for Skinner Ridge (Swift Run), Wildcat Ridge (Hazeltop), Amalik (Shuyak), Hidden Harbor (Kukaklek), Berea (Melyn). Our 1 m DTM matches the published elevations within 0.03-0.28 m. |
+| Boulder-field stop · real | NASA Science blog, "Look at All Those Boulders!" (2023-04-17), image sol 754 | `https://science.nasa.gov/blog/look-at-all-those-boulders/` | The quote that the boulders were "likely sourced from outside of Jezero crater". Position = rover waypoint on sol 754 (MMGIS). |
+| Slope limit, walking pace, EVA length | NASA EVA-EXP-0042 Rev B, *Exploration EVA System Concept of Operations* (2020), NTRS 20205008200 | `https://ntrs.nasa.gov/api/citations/20205008200/downloads/EVA-EXP-0042%20xEVA%20System%20Con%20Ops%20Rev%20B%20Final%20dtd%2010192020_REF%20DOC.pdf` | "slope of up to 20°" (p.39); "~2 km/hr walking pace" (p.40); "6±2 hours" (p.37) |
+| Metabolic rates, O2 per MJ, gravity, suit masses | NASA/TP-2015-218570 Rev 2, *Life Support Baseline Values and Assumptions Document* (BVAD, 2022), NTRS 20210024855 | `https://ntrs.nasa.gov/api/citations/20210024855/downloads/BVAD_2.15.22-final.pdf` | xEMU 352 W (p.135); Table 4-70 O2 0.086 kg per 1.062 MJ; Table 4-66 gravity; Tables 4-67/4-68 masses |
+| Apollo metabolic data | Waligora & Horrigan (1975), "Metabolism and heat dissipation during Apollo EVA periods", NTRS 19760005584 | `https://ntrs.nasa.gov/api/citations/19760005584/downloads/19760005584.pdf` | Table 2 means (geology 283 W, overhead 312 W); Table 4 Apollo 14 traverses (`config/apollo14_table4.csv`) |
+| Battery, O2 cross-check | *Apollo Operations Handbook, Extravehicular Mobility Unit*, CSD-A-789-(1) Rev V, NTRS 19730064704 | `https://ntrs.nasa.gov/api/citations/19730064704/downloads/19730064704.pdf` | 387.5 Wh battery; 1.340 lb usable O2 |
+| Walkback rule | Bellcomm (1969), NTRS 19700009560 | `https://ntrs.nasa.gov/api/citations/19700009560/downloads/19700009560.pdf` | "shall be able to walk back to the LM on the consumables remaining" |
+| 8 h suit design life | Ogilvie et al., "Mars Portable Life Support System Status and Plan", ICES-2026-126, NTRS 20260003024 | `https://ntrs.nasa.gov/api/citations/20260003024/downloads/Final_ICES2026_Mars_PLSS_Plan.pdf` | xEMU "designed for 8-hour autonomous performance" |
+| **Radiation baseline** · proxy | NASA PIA17600, "Radiation Measurements on Mars" (2013) | `https://science.nasa.gov/photojournal/radiation-measurements-on-mars/` | "about 210 micrograys per day" (Curiosity RAD, Gale, Aug 2012 - Jun 2013), absorbed dose |
+| **May 2024 solar event** · proxy | NASA Science, "What NASA Is Learning from the Biggest Geomagnetic Storm in 20 Years" (2025) and PIA26302 | `https://science.nasa.gov/science-research/heliophysics/what-nasa-is-learning-from-the-biggest-geomagnetic-storm-in-20-years/` | "8,100 micrograys" event dose at Gale; event date 20 May 2024 (sol 4190) |
+
+### Tried and not usable (bot checks): not used anywhere
+- Tobler (1993) hiking function (escholarship.org), Minetti et al. (2002) *J Appl Physiol* 93:1039 (journals.physiology.org), Hassler et al. (2014) *Science* 343 (science.org). The ADS and PubMed copies show captchas. The two dose-equivalent figures seen only in search snippets are **not** used.
+- DONKI SEP for 15-25 May 2024: api.nasa.gov returned HTTP 429 (DEMO_KEY rate limit), and the kauai mirror reset the connection. The cached May-June 2024 file has no 20 May entry.
+
 ### Not yet fetched (planned)
-- **Radiation baseline** (Hassler et al. 2014, *Science* 343(6169), MSL RAD at Gale = **proxy**). Citation found in Phase 0; the dose numbers are **not verified yet** (publisher pages block automated access). Phase 2.
 - **Atmosphere** (ESA/LMD Mars Climate Database). Reachable in Phase 0; not used yet. Cut item #2.
 - **Geology / spectral layer.** Cut item #1, not attempted.
 
