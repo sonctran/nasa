@@ -67,7 +67,7 @@ The plan of record uses NASA numbers plus a muscle-efficiency value from Minetti
 - **A\*** (Python reference, `planner/astar.py`). Heuristic = straight-line distance × the smallest cost per metre of any step in the graph. It never over-estimates, so A\* returns the true optimum.
 - **Tests.** On 12 random grids (60 start/goal pairs each), A\* cost equals networkx Dijkstra exactly. On the real Jezero grid it equals scipy Dijkstra (relative difference **0.0** on all 5 legs of the plan). A plan leg takes A\* 4–19 ms.
 - **Route options** (same stops, different weights `w_t, w_E, w_H, w_D`): **Fastest** (1,0,0,0), **Lowest-energy** (0,1,0,0, identical to Fastest, see §3), **Safest** (0.05, 0.05, 0.9, 0), **Balanced** (⅓, ⅓, ⅓, 0, the plan of record) and **Shortest distance** (0,0,0,1), a naive baseline that ignores slope and hazard.
-- **Pareto sweep.** The hazard weight goes from 0 to 0.95 in steps of 0.05 (time weight = 1 − w_H). 20 weightings give **12 distinct non-dominated routes** on walking time vs hazard.
+- **Pareto sweep.** The hazard weight goes from 0 to 0.95 in steps of 0.05 (time weight = 1 − w_H). 20 weightings give **14 distinct non-dominated routes** on walking time vs hazard.
 
 ## 5. Choosing stops and their order (operations research)
 
@@ -93,7 +93,7 @@ The plan of record uses NASA numbers plus a muscle-efficiency value from Minetti
 
 **The 95 % line falls between the 26- and 30-point plans.** With the efficiency at 0.25 (before Minetti was verified), the 30-point plan scored 95.02 %. With the measured 0.243 it scores 94.96 % ± 0.15 %. The Tobler + Minetti check model gives it 95.9 % (§3b). Treat 26 vs 30 points as a close call for Son, not a clear answer. The app should show both. Going to 36 points is clearly risky (80 %).
 
-- **Tornado chart** (each input at its 10th and 90th percentile, the others at median; base 267 min). EVA length swings by: depot work time 39 min; walking speed 38 min; Amalik and Wildcat Ridge work 36 min each; Skinner Ridge work 24 min. Metabolic rate changes O₂ use (0.32–0.53 kg), not time. **Work time, not walking, drives the risk.** Walking is only 97 of the 267 planned minutes.
+- **Tornado chart** (each input at its 10th and 90th percentile, the others at median; base 267 min). EVA length swings by: depot work time 39 min; walking speed 38 min; Amalik and Wildcat Ridge work 35 min each; Skinner Ridge work 24 min. Metabolic rate changes O₂ use (0.32–0.53 kg), not time. **Work time, not walking, drives the risk.** Walking is only 97 of the 267 planned minutes.
 
 ## 7. Safety rules
 

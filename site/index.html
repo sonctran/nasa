@@ -12,10 +12,11 @@
 <body>
 <header>
   <div class="brand">Marswalk <span>Ops</span></div>
-  <div class="pitch"><b>Plans a safe 6-hour, two-astronaut Marswalk in Jezero Crater:</b> it picks the science stops, finds the route over real NASA terrain, schedules the work and measures the risk.</div>
+  <div class="pitch"><b>Plans a safe 6-hour, two-astronaut Marswalk (EVA, a walk outside in spacesuits) in Jezero Crater:</b> it picks the science stops, finds the route over real NASA terrain, schedules the work and measures the risk.
+    <span class="try">Try: press <b>HUD mode</b> then <b>Play</b>, or add a stop on the right and watch it re-plan.</span></div>
   <div class="actions">
     <span id="gochip" class="gochip" title="Go/No-Go for the plan on the map">…</span>
-    <button id="btn-hud" class="primary" title="Helmet visor view with playback">HUD mode</button>
+    <button id="btn-hud" class="primary" title="Heads-up display: the astronaut's helmet visor view, with playback">HUD mode</button>
     <a href="methods.html"><button>Methods &amp; data</button></a>
   </div>
 </header>
@@ -52,7 +53,7 @@
   <div class="stage" id="hud-stage">
     <canvas id="hud-canvas"></canvas>
     <div class="ro tl"><span class="lab">Next</span><span class="mid" id="hud-next">-</span><span class="big" id="hud-dist">-</span><span class="mid" id="hud-brg">-</span></div>
-    <div class="ro tr"><span class="lab">EVA time left</span><span class="big" id="hud-left">-</span><span class="lab">Walk home now</span><span class="mid" id="hud-home">-</span></div>
+    <div class="ro tr"><span class="lab">EVA time left (h:mm)</span><span class="big" id="hud-left">-</span><span class="lab">Walk home now</span><span class="mid" id="hud-home">-</span></div>
     <div class="ro bl"><span class="lab">O2 above reserve</span><span class="big" id="hud-o2">-</span><span class="lab">Battery</span><span class="mid" id="hud-bat">-</span></div>
     <div class="ro br"><span class="lab">Terrain here</span><span class="mid" id="hud-terrain">-</span><span class="lab">Task</span><span class="mid" id="hud-task">-</span></div>
     <div class="alert" id="hud-alert" hidden></div>
@@ -62,7 +63,7 @@
     <button id="hud-play" class="primary">Play</button>
     <label>Speed <select id="hud-speed"><option value="60">60×</option><option value="180" selected>180×</option><option value="600">600×</option></select></label>
     <input type="range" id="hud-scrub" min="0" max="1000" value="0" aria-label="Mission time">
-    <span class="small" style="color:#9fffd0">All values are modeled from real terrain + labelled assumptions. Not flight software.</span>
+    <span class="small" style="color:#9fffd0">All values are modeled from real terrain + labelled assumptions. Not flight software. Image: HiRISE, NASA/JPL-Caltech/Univ. of Arizona; USGS mosaic (Fergason et al. 2020).</span>
   </div>
 </div>
 

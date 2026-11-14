@@ -625,7 +625,7 @@ def main() -> dict:
         alts.append({"id": k, "name": name, "weights": opts[k], **tt,
                      "min_walkback_margin_min": ss["walkback"]["min_time_margin_min"],
                      "min_o2_margin_pct": ss["walkback"]["min_o2_margin_pct_of_capacity"],
-                     "p_on_time": su["p_on_time"], "sep_violating_points": ss["sep"]["violating_points"],
+                     "p_on_time": su["p_on_time"], "p_success": su["p_success"], "sep_violating_points": ss["sep"]["violating_points"],
                      "legs_xy": [simplify_xy(l["xy"]).round(1).tolist() for l in L]})
     pareto = pareto_sweep(world, sites, order, pv(p, "route_options.pareto_hazard_step"))
 

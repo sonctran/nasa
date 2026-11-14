@@ -134,7 +134,7 @@ function setupMap() {
   A.vec.pov = { title: 'Rover photos (22)', kind: 'real', g: pov, on: false };
   A.vec.alts = { title: 'Route options', kind: 'modeled', g: L.layerGroup(), on: true };
   A.vec.route = { title: 'Your plan route', kind: 'modeled', g: L.layerGroup(), on: true };
-  A.vec.stops = { title: 'Habitat + stops', kind: 'real', g: L.layerGroup(), on: true };
+  A.vec.stops = { title: 'Science stops + habitat site', kind: 'real', kind2: 'assumption', g: L.layerGroup(), on: true };
   A.vec.extra = { title: 'Checks overlay', kind: 'modeled', g: L.layerGroup(), on: true };
   for (const k of ['traverse', 'depot', 'alts', 'route', 'stops', 'extra']) if (A.vec[k].on) A.vec[k].g.addTo(map);
   if (A.vec.waypoints.on) A.vec.waypoints.g.addTo(map);
@@ -149,7 +149,7 @@ function setupMap() {
 }
 
 function photoHTML(ph, distM) {
-  const d = distM != null ? `<br>Nearest rover photo: taken ${f0(distM)} m from this stop.` : '';
+  const d = distM != null ? `<br>Nearest rover photo: taken ${f0(distM)} m from this stop${distM > 50 ? ', so it shows the area, not this exact outcrop' : ''}.` : '';
   return `<img class="photo" src="assets/${esc(ph.file)}" alt="Perseverance ${esc(ph.instrument)} image, sol ${ph.sol}" loading="lazy">
     <div class="credit">Image: ${esc(ph.credit)} · ${esc(ph.instrument)} · sol ${ph.sol} · rover site ${ph.site}${d}
     <br><a href="${esc(ph.page)}" target="_blank" rel="noopener">raw image page</a> <span class="badge real">real</span></div>`;
@@ -168,7 +168,7 @@ function layerControl() {
       html += '<hr style="border-color:#2c333d">';
       for (const [id, v] of Object.entries(A.vec)) {
         if (id === 'extra') continue;
-        html += `<div class="lyr"><label><input type="checkbox" data-v="${id}" ${v.on ? 'checked' : ''}> ${esc(v.title)} ${B(v.kind)}</label><span></span></div>`;
+        html += `<div class="lyr"><label><input type="checkbox" data-v="${id}" ${v.on ? 'checked' : ''}> ${esc(v.title)} ${B(v.kind)}${v.kind2 ? ' ' + B(v.kind2) : ''}</label><span></span></div>`;
       }
       html += '</div>';
       d.innerHTML = html;
@@ -177,7 +177,7 @@ function layerControl() {
       d.querySelectorAll('[data-r]').forEach((cb) => cb.onchange = () => {
         const r = A.raster[cb.dataset.r]; r.on = cb.checked;
         r.on ? r.o.addTo(A.map) : r.o.remove();
-        reorderLayers(); updateLegend();
+        reorderLayers(); updateLegend(); updateAttribution();
       });
       d.querySelectorAll('[data-op]').forEach((sl) => sl.oninput = () => {
         const r = A.raster[sl.dataset.op]; r.opacity = +sl.value; r.o.setOpacity(r.opacity);
@@ -185,11 +185,17 @@ function layerControl() {
       d.querySelectorAll('[data-v]').forEach((cb) => cb.onchange = () => {
         const v = A.vec[cb.dataset.v]; v.on = cb.checked; v.on ? v.g.addTo(A.map) : v.g.remove();
       });
-      if (window.innerWidth < 1100) { d.classList.add('collapsed'); tg.textContent = '+'; }
+      d.classList.add('collapsed'); tg.textContent = '+';   // collapsed by default so the route is visible
       return d;
     },
   });
   new Ctl({ position: 'topright' }).addTo(A.map);
+}
+const THEMIS_CREDIT = 'THEMIS IR: NASA/JPL-Caltech/Arizona State Univ., via NASA Mars Trek';
+function updateAttribution() {
+  const on = A.raster.themis_day.on || A.raster.themis_night.on, ac = A.map.attributionControl;
+  ac.removeAttribution(THEMIS_CREDIT);
+  if (on) ac.addAttribution(THEMIS_CREDIT);
 }
 function reorderLayers() {
   const order = ['ortho', 'hillshade', 'elevation', 'slope', 'roughness', 'themis_day', 'themis_night', 'nogo', 'depot_closeup'];
@@ -216,7 +222,11 @@ function updateLegend() {
   }
   if (A.raster.nogo.on) html += `<div><span class="sw" style="background:${A.raster.nogo.lyr.color}"></span>No-go: slope &gt; ${A.cur ? A.cur.slopeNogo : 20}° or roughness &gt; 0.2 m ${B('assumption')}</div>
     <div class="small muted">Map layer drawn at the default 20°; the planner uses the slider value.</div>`;
-  html += `<div><span class="sw" style="background:${ROUTE}"></span>Your plan route ${B('modeled')}</div>
+  if (A.raster.themis_day.on || A.raster.themis_night.on) html += `<div>THEMIS IR ${B('proxy')}</div><div class="small muted">Relative brightness only (not calibrated temperature), ~81 m/px.</div>`;
+  html += `<div><span class="habicon sm">H</span> Habitat: start, finish, shelter</div>
+    <div>${['fine_grained_layered_rock', 'delta_layer_sequence', 'transported_boulders', 'depot'].map((k) => `<span class="sw" style="background:${CAT[k].col};border-radius:50%"></span>${CAT[k].label}`).join('<br>')}</div>
+    <div class="small muted">Number = stop order in your plan; · = site not in your plan (click a stop for its card).</div>
+    <div><span class="sw" style="background:${ROUTE}"></span>Your plan route ${B('modeled')}</div>
     <div><span class="sw" style="background:#fff;border-radius:50%"></span>Tightest walk-back point</div>
     <div><span class="sw" style="background:${SEPCOL}"></span>Too far from shelter (SEP rule)</div>
     <div><span class="sw" style="background:#fff"></span>Perseverance traverse ${B('real')}</div>`;
@@ -249,7 +259,7 @@ function drawStops() {
   g.clearLayers();
   const hab = A.plan.sites[0];
   L.marker(LL([hab.x, hab.y]), { icon: L.divIcon({ className: '', html: '<div class="habicon">H</div>', iconSize: [26, 26], iconAnchor: [13, 13] }) })
-    .bindTooltip('Habitat (start, finish and the only shelter). Site chosen by a stated rule, DECISIONS T29.').addTo(g);
+    .bindTooltip('Habitat (start, finish and the only shelter). Site picked by a stated rule: the flattest 110 m pad on the crater floor about 1 km east of the depot (assumption).').addTo(g);
   A.plan.sites.slice(1).forEach((s) => {
     const pos = A.cur.order.indexOf(s.id);
     const m = L.marker(LL([s.x, s.y]), { icon: stopIcon(s, pos >= 0 ? pos + 1 : null), riseOnHover: true })
@@ -368,7 +378,7 @@ function checklist() {
   const target = pv('schedule.robust_p_on_time'), resv = 100 * pv('consumables.o2_reserve_fraction');
   const items = [
     ['EVA fits the time limit (planned)', t.duration_min <= A.limitMin, `${f0(t.duration_min)} of ${A.limitMin} min`],
-    [`Home on time in ≥ ${Math.round(target * 100)} % of Monte Carlo runs`, mc.p_success >= target, `${pct(mc.p_success)} of ${f0(mc.runs)} runs`],
+    [`Home on time in ≥ ${Math.round(target * 100)} % of Monte Carlo runs`, mc.p_success >= target, `${pct(mc.p_success)} of ${f0(mc.runs)} runs in this browser (Python reference for the recommended plan: ${pct(A.plan.montecarlo.p_success)})`],
     ['Walkback rule: can always walk home with reserve O2', s.walkback.min_o2_margin_kg >= 0, `tightest O2 margin ${f1(s.walkback.min_o2_margin_pct_of_capacity)} % of tank above reserve`],
     ['Walkback rule: can always walk home within the EVA limit', s.walkback.min_time_margin_min >= 0, `tightest time margin ${f0(s.walkback.min_time_margin_min)} min`],
     [`SEP shelter reachable within ${A.cur.shelterMin} min everywhere`, s.sep.violating_points === 0, `farthest point ${f0(s.sep.max_walk_home_min)} min from shelter`],
@@ -435,7 +445,8 @@ function renderStaticPanels() {
     <h3>Safety rules ${B('assumption')}</h3>
     <div class="slider"><span>No-go slope</span><input type="range" id="slope" min="10" max="25" step="1"><output id="slopeo"></output></div>
     <div class="slider"><span>SEP shelter limit</span><input type="range" id="shelter" min="20" max="90" step="5"><output id="sheltero"></output></div>
-    <p class="small muted">No-go slope default 20° (NASA xEVA ConOps walking slope); roughness limit 0.2 m (assumption). SEP limit default 60 min (assumption).</p>
+    <p class="small muted">No-go slope default 20°: the NASA xEVA ConOps walking-slope limit, a lunar suit value applied to Mars ${B('proxy')}. Roughness limit 0.2 m (fixed, assumption). SEP (solar particle event, i.e. solar storm) shelter limit default 60 min (assumption).
+      Walking pace and power come from NASA lunar and Apollo suit data ${B('proxy')}, scaled to Mars gravity.</p>
     <div id="live"></div>
 
     <h2>Route options for the recommended stops ${B('modeled')}</h2>
@@ -447,7 +458,7 @@ function renderStaticPanels() {
       Hazard exposure = minutes walked × hazard index (0 below 10° and 0.05 m roughness, 1 at the no-go limit). Energy is not a separate axis: with the constant-power pacing rule, walking energy = 352 W × time.</p>`;
   // candidates
   const sel = $('#cand');
-  const cands = P.candidates.map((c) => ({ ...c, label: `${c.value} pts: ${c.stops.map((id) => siteById(id).name.replace(/ \(.*\)/, '')).join(', ')} · ${pct(c.p_success, 1)} on time${c.value === P.robust_plan.value ? ' (recommended)' : ''}` }));
+  const cands = P.candidates.map((c) => ({ ...c, label: `${c.value} pts: ${c.stops.map((id) => siteById(id).name.replace(/ \(.*\)/, '')).join(', ')} · ${pct(c.p_success + 1e-9, 2)} on time${c.value === P.robust_plan.value ? ' (recommended)' : (c.p_success < pv('schedule.robust_p_on_time') ? ` (under the ${Math.round(100 * pv('schedule.robust_p_on_time'))} % bar)` : '')}` }));
   sel.innerHTML = cands.map((c, i) => `<option value="${i}" ${c.value === P.robust_plan.value ? 'selected' : ''}>${esc(c.label)}</option>`).join('');
   sel.onchange = () => { const c = cands[+sel.value]; A.cur.order = c.order.slice(1, -1).map((k) => P.sites[k].id).concat(A.cur.waypoints.map((w) => w.id)); renderEditor(); drawStops(); scheduleReplan(); };
   document.querySelectorAll('[data-mode]').forEach((b) => b.onclick = () => setMode(b.dataset.mode));
@@ -466,12 +477,13 @@ function renderStaticPanels() {
   drawStops();
   // alternatives table
   const sel2 = new Set();
-  const altHTML = () => `<table><tr><th>Option</th><th>km</th><th>min</th><th>kcal walk</th><th>max slope</th><th>caution min</th><th>min reserve</th><th>P(on time)</th></tr>
+  const altHTML = () => `<table><tr><th>Option</th><th>km</th><th>min</th><th>kcal walk</th><th>max slope</th><th>caution min</th><th>min reserve</th><th>P(home on time, O2 OK)</th></tr>
     ${P.alternatives.map((a) => `<tr class="click ${sel2.has(a.id) ? 'sel' : ''}" data-alt="${a.id}"><td><span class="sw" style="background:${ROUTE_COL[a.id]}"></span>${esc(a.name)}</td>
       <td>${f2(a.dist_m / 1000)}</td><td>${f1(a.duration_min)}</td><td>${f0(a.walk_energy_kcal)}</td><td>${f1(a.max_slope_deg)}°</td>
-      <td>${f1(a.caution_min)}</td><td>${f0(a.min_walkback_margin_min)} min / ${f0(a.min_o2_margin_pct)} % O2</td><td>${pct(a.p_on_time)}</td></tr>`).join('')}</table>
+      <td>${f1(a.caution_min)}</td><td>${f0(a.min_walkback_margin_min)} min / ${f0(a.min_o2_margin_pct)} % O2</td><td>${pct(a.p_success ?? a.p_on_time)}</td></tr>`).join('')}</table>
     <p class="small muted">min = whole EVA (walking + ${f0(P.plan.totals.work_min)} min of work). caution min = minutes on cells with any hazard (slope over 10° or roughness over 0.05 m).
-      min reserve = tightest walk-back margin along the route, in time and in % of the O2 tank above the reserve. Lowest-energy gives the same route as Fastest (DECISIONS T32).</p>`;
+      min reserve = tightest walk-back margin along the route, in time and in % of the O2 tank above the reserve. Lowest-energy gives the same route as Fastest: with constant-power pacing, walking energy = 352 W × time.
+      P = share of ${f0(P.montecarlo.runs)} Python Monte Carlo runs home within ${A.limitMin} min with O2 above reserve (same measure as the headline).</p>`;
   const drawAlts = () => {
     $('#alts').innerHTML = altHTML();
     document.querySelectorAll('[data-alt]').forEach((tr) => tr.onclick = () => {
@@ -520,7 +532,7 @@ function renderLive() {
     <div class="kpis">
       <div class="kpi"><div class="v">${value} pts</div><div class="l">science value</div></div>
       <div class="kpi"><div class="v" style="color:${t.duration_min <= A.limitMin ? 'inherit' : '#ff6b5b'}">${f0(t.duration_min)} min</div><div class="l">of ${A.limitMin} min (${f0(t.walk_min)} walk)</div></div>
-      <div class="kpi"><div class="v">${pct(mc.p_success)}</div><div class="l">home on time, ${f0(mc.runs)} runs</div></div>
+      <div class="kpi"><div class="v">${pct(mc.p_success)}</div><div class="l">home on time, ${f0(mc.runs)} browser runs</div></div>
       <div class="kpi"><div class="v">${f2(t.dist_m / 1000)} km</div><div class="l">walked, +${f0(t.gain_m)} m climb</div></div>
       <div class="kpi"><div class="v">${f0(t.walk_energy_kcal)} kcal</div><div class="l">walking energy (per person)</div></div>
       <div class="kpi"><div class="v">${f1(t.max_slope_deg)}°</div><div class="l">max cell slope · ${f1(t.caution_min)} caution min</div></div>
@@ -575,7 +587,7 @@ function renderStops() {
   const pane = $('#tab-stops');
   const stops = A.plan.sites.slice(1);
   pane.innerHTML = `<h2>Science stops and the depot</h2>
-    <p class="small muted">All six sites are real Perseverance sample or study sites. Positions, quotes and samples come from the NASA PDS Mars 2020 Initial Reports. Science value = Son's rubric ${B('owner-set')}; the category of each site is a science judgement.</p>` +
+    <p class="small muted">All six sites are real Perseverance sample or study sites. Positions, quotes and samples come from the NASA PDS Mars 2020 Initial Reports (boulder field: NASA Science blog and a rover waypoint). Science value = the team's rubric (fine-grained layered rock 10, delta layer sequence 6, transported boulders 4) ${B('owner-set')}; the category of each site is a science judgement.</p>` +
     stops.map((s) => {
       const pos = A.cur.order.indexOf(s.id);
       const np = nearestPhoto(s);
@@ -583,7 +595,7 @@ function renderStops() {
       const tubes = s.kind === 'depot' ? `<p class="small">${A.vectors.depot_tubes.points.length} tubes: ${A.vectors.depot_tubes.points.map((t) => esc(t.name)).join(', ')} (dropped sols ${A.vectors.depot_tubes.points[0].drop_sol}-${A.vectors.depot_tubes.points.at(-1).drop_sol}). ${esc(A.vectors.depot_tubes.note)}</p>` : '';
       return `<div class="card" id="card-${s.id}">
         <h3><span class="sw" style="background:${c.col}"></span>${esc(s.name)} ${pos >= 0 ? `<span class="badge modeled">stop ${pos + 1} in your plan</span>` : '<span class="badge derived">not in plan</span>'}</h3>
-        <div class="small">${esc(c.label)} · <b>${s.value} pts</b> ${B('owner-set')} · work ${s.dwell_min} min ${B('assumption')} · ${s.work_w} W work rate · walk home ${f0(s.walk_home_min)} min ${B('modeled')}${s.sep_ok ? '' : ' · <b style="color:#ff6b5b">outside the SEP shelter limit</b>'}</div>
+        <div class="small">${esc(c.label)} · <b>${s.value} pts</b> ${B('owner-set')} · work ${s.dwell_min} min ${B('assumption')} · <span title="Apollo lunar EVA metabolic rate for this kind of task">${s.work_w} W work rate</span> ${B('proxy')} · walk home ${f0(s.walk_home_min)} min ${B('modeled')}${s.sep_ok ? '' : ' · <b style="color:#ff6b5b">outside the SEP shelter limit</b>'}</div>
         ${s.task ? `<p><b>Task:</b> ${esc(s.task)}</p>` : ''}
         ${s.why_category ? `<p><b>Science goal:</b> ${esc(s.why_category)}</p>` : ''}
         ${s.quote ? `<blockquote>"${esc(s.quote)}"</blockquote><div class="credit">${esc(s.source)}${s.samples ? ' · samples: ' + esc(s.samples) : ''}</div>` : `<div class="credit">${esc(s.source || '')}</div>`}
@@ -604,6 +616,9 @@ function renderStops() {
 function renderSafety() {
   const ev = A.res.eval, s = ev.safety, c = checklist(), P = A.plan;
   const donkiN = A.donki.events.length;
+  const isModel = (e) => e.instruments.some((i) => i.displayName.startsWith('MODEL'));
+  const donkiDet = A.donki.events.filter((e) => !isModel(e));
+  const donkiDays = new Set(A.donki.events.map((e) => e.eventTime.slice(0, 10))).size;
   const may = pv('sep.may2024_event_dose_ugy'), rate = pv('sep.background_dose_rate_ugy_per_day');
   $('#tab-safety').innerHTML = `
     <div class="gobanner ${c.go ? 'go' : 'nogo'}">${c.go ? 'GO: all 9 checks pass' : 'NO-GO: ' + c.items.filter((i) => !i[1]).length + ' check(s) fail'} <span class="badge modeled">modeled</span></div>
@@ -621,7 +636,7 @@ function renderSafety() {
       ${s.sep.violating_points ? `<b style="color:#ff6b5b">${s.sep.violating_points} route points break the rule (red on the map).</b>` : 'No route point breaks the rule.'}</p>
     <button id="sep-replay" class="primary" type="button">Replay a solar storm alert in the HUD</button>
     <p class="small muted">The replay plays the EVA and triggers the alert at the point farthest from shelter, then re-plans the way home live.</p>
-    <div class="note small">Real alert data ${B('proxy')}: ${donkiN} solar energetic particle events in NASA CCMC DONKI between 2024-05-01 and 2024-06-29 (cached). These are near-Earth detections, not measured at Mars. First: ${esc(A.donki.events[0].eventTime)}, ${esc(A.donki.events[0].instruments.map((i) => i.displayName).join('; '))}.</div>
+    <div class="note small">Real alert data ${B('proxy')}: ${donkiN} solar energetic particle (SEP) records in NASA CCMC DONKI between 2024-05-01 and 2024-06-29 (cached), on ${donkiDays} days: ${donkiDet.length} instrument detections and ${donkiN - donkiDet.length} model forecasts (one storm can have several records). They are near-Earth records, not measured at Mars. First detection: ${esc(donkiDet[0].eventTime)}, ${esc(donkiDet[0].instruments.map((i) => i.displayName).join('; '))}.</div>
     <h2>Radiation dose estimate ${B('proxy')}</h2>
     <p><b>${f0(s.dose.background_ugy)} µGy</b> absorbed dose for this ${f0(ev.totals.duration_min)} min EVA, from the Curiosity RAD background of ${rate} µGy/day measured at Gale crater (NASA PIA17600), not Jezero.
       For scale: NASA says astronauts on Mars during the 20 May 2024 storm would have received <b>${may.toLocaleString('en-US')} µGy</b>, about ${f0(may / rate)} days of background, which is why the shelter rule exists. Dose equivalent (mSv) is not estimated.</p>
@@ -643,8 +658,8 @@ function renderChecks() {
     <div class="card"><b>Browser = Python.</b> This page re-implements the planner in JavaScript (Web Worker). A test runs both on random fixture grids and on this grid: same route cost (to 1e-12), same cells, same plan totals. <span id="chk-live"></span></div>
     <div class="card"><b>Slope check.</b> Recommended route: max 10 m cell slope ${f1(A.plan.plan.totals.max_slope_deg)}° (limit 20°). On the finer 2 m grid: median ${f1(s2.p50_deg)}°, P95 ${f1(s2.p95_deg)}°, max ${f1(s2.max_deg)}°; ${f2(100 * s2.share_above_20_deg)} % of points are just over 20°.</div>
     <div class="card"><b>Walking model vs Apollo 14.</b> On ${ap.legs.length} uphill legs (lunar gravity, Apollo 14's own pace and metabolic rate) the model predicts a mean ${f2(ap.mean_model_kmh)} km/h vs ${f2(ap.mean_measured_kmh)} km/h measured (mean error per leg ${f2(ap.mean_abs_error_kmh)} km/h).</div>
-    <h3>Planned route vs the real Perseverance drive ${B('real')}</h3>
-    <p class="small muted">A rover is not a human, but the drivers avoided the same hazards our model sees. Share of the planned path within 25 m of the rover's real path:</p>
+    <h3>Planned route vs the real Perseverance drive ${B('real')} ${B('modeled')}</h3>
+    <p class="small muted">A rover is not a human, but its drivers also had to avoid steep and rough ground, so a planner that sees hazards should stay closer to the rover's real path than a straight line does. Share of the planned path within 25 m of the rover's real path:</p>
     <table><tr><th>Drive</th><th>Balanced</th><th>Safest</th><th>Straight line</th><th></th></tr>
     ${drives.map((d, i) => `<tr><td>${esc(d.name)}<br><span class="small muted">sols ${d.rover_sols.join('-')}</span></td>
       <td>${pct(d.options.balanced.share_of_planned_within_m['25'], 0)}</td><td>${pct(d.options.safest.share_of_planned_within_m['25'], 0)}</td>

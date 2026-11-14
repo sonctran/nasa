@@ -118,6 +118,7 @@ def main() -> int:
         # layers: slope on, legend, cursor readout
         page.click("nav.tabs button[data-tab=plan]")
         page.evaluate("window.__marswalk.map.fitBounds([[900,1000],[2500,2900]])")
+        page.click(".mctl .toggle")                      # Layers panel starts collapsed
         page.check("input[data-r=slope]")
         page.locator("input[data-op=slope]").fill("0.7")
         page.mouse.move(520, 450)
@@ -125,6 +126,7 @@ def main() -> int:
         rep["dom"]["cursor_readout"] = page.inner_text("#readout")
         shot("08_slope_layer_legend_readout")
         page.uncheck("input[data-r=slope]")
+        page.click(".mctl .toggle")
 
         # live re-plan: add Hidden Harbor, a waypoint and a keep-out box; change the slope rule
         t1 = time.perf_counter()

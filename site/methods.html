@@ -39,7 +39,7 @@
   <h2 id="limits">Limitations</h2>
   <ul>
     <li>The walking model uses lunar (Apollo), Earth and suit-design numbers. NASA reports higher metabolic rates in Mars gravity, so walking cost is probably underestimated.</li>
-    <li>Many safety values are assumptions (SEP shelter time 60 min, O2 reserve 15 %, O2 tank size, battery draw, work times). All are listed below and most are sliders in the app.</li>
+    <li>Many safety values are assumptions (SEP shelter time 60 min, O2 reserve 15 %, O2 tank size, battery draw, work times). All are listed below. The no-go slope, the SEP shelter time and the route weights are sliders in the app; the others are fixed.</li>
     <li>The 10 m grid (from a 1 m DTM) cannot see rocks smaller than a few metres. Roughness mostly flags scarps.</li>
     <li>Radiation is absorbed dose only, from Gale crater (proxy). Solar particle events are near-Earth detections (proxy).</li>
     <li>The rover comparison is real evidence, but a rover is not a human. One of two drives was inconclusive.</li>
@@ -64,7 +64,7 @@
 <script type="module">
 const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 function inline(s) {
-  s = esc(s);
+  s = esc(s).replace(/\\([*_`|\[\]#])/g, (m, c) => '&#' + c.charCodeAt(0) + ';');   // Markdown escapes like A\*
   s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
   s = s.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
   s = s.replace(/(^|[^*])\*([^*\s][^*]*)\*/g, '$1<i>$2</i>');

@@ -14,7 +14,7 @@ ALT_STYLE = {"fastest": (OI["orange"], "--"), "lowest_energy": (OI["green"], ":"
              "balanced": (OI["blue"], "-"), "shortest": (OI["purple"], (0, (5, 1, 1, 1)))}
 CAT_COLOR = {"fine_grained_layered_rock": OI["vermillion"], "delta_layer_sequence": OI["purple"],
              "transported_boulders": OI["yellow"], "depot": OI["black"]}
-CREDIT = ("Terrain: HiRISE DTM mosaic, Fergason, Galuszka & Hare 2020, USGS (doi:10.5066/P9REJ9JN); HiRISE data NASA/JPL-Caltech/UofA. "
+CREDIT = ("Terrain: HiRISE DTM mosaic, Fergason et al. 2020, USGS (doi:10.5066/P9REJ9JN); HiRISE data NASA/JPL-Caltech/UofA. "
           "Sites: NASA PDS Mars 2020 sample dossier. Routes and numbers: MODELED.")
 
 

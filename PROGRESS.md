@@ -1,6 +1,48 @@
 # PROGRESS
 
-## Current status: Phase 3 (web app): BUILT AND TESTED. Waiting on one exit check: **Son clicks through it locally** (steps below). Next: Phase 4, when Son says so.
+## Current status: Phase 4 (validate, polish, deploy): DONE. Next: Phase 5 (submission package), when Son says so.
+
+**Live app:** https://sonctran.github.io/nasa/ · **Repo:** https://github.com/sonctran/nasa (public)
+
+### Done in Phase 4 (Sat 2026-11-14, ~1 h)
+- **Deploy:** `.github/workflows/pages.yml` publishes `site/` to GitHub Pages on every push to `claude/serene-sagan-hlltkr` (the repo's default branch). Son switched Pages on (Settings → Pages → Source: GitHub Actions); the workflow could not do it itself ("Resource not accessible by integration").
+- **Independent review:** a subagent with no build context clicked through the local and live site at 4 screen sizes, checked numbers against plan.json/params/docs, labels, insignia, credits, AI disclosure, links and the first 10 seconds. Result: **0 blockers, 9 high, 17 low.** All 9 high and 13 of the 17 low are fixed (table below).
+- `scripts/screenshot.py` now takes `--url` and `--out`, so the same full click-through runs against the live site.
+- Network: added `sonctran.github.io` to the "nasa" cloud environment (approved by Son) so the live site can be tested from here.
+
+### Phase 4 exit checks (evidence)
+| Exit check | Result | Evidence |
+|---|---|---|
+| Live URL works, fresh browser profile, no login | **PASS** | `scripts/screenshot.py --url https://sonctran.github.io/nasa/` in a new Chromium context: all 15 panels clicked, **0 console errors, 0 page errors, 0 failed requests, 0 HTTP errors**. Route on the map at 0.85 s, plan ready 1.66 s (before the fixes; re-run after the final deploy is below). |
+| Repo URL works, public | **PASS** | GitHub search API: `sonctran/nasa`, `visibility: public`. |
+| Reviewer findings fixed or listed | **PASS** | Table below. |
+| Tests | **PASS** | pytest **166 passed**. Local click-through after fixes: 0 errors, route 0.17 s, ready 0.98 s, tablet overflow 0 px. Site 11 MB. |
+
+### Reviewer findings
+| # | Finding | Status |
+|---|---|---|
+| H1 | Three "on time" numbers for one plan (98.2 / 99.1 / 98.3 %) | **Fixed.** Route table now uses the same measure as the headline (home on time AND O2 above reserve; new `p_success` in plan.json, Balanced = 98.2 %). Browser values say "browser run" and show the Python reference. |
+| H2 | 30-pt candidate showed "95.0 %" but fails the 95 % bar | **Fixed.** Shows 94.96 % "(under the 95 % bar)". |
+| H3 | METHODS said 12 Pareto routes; data has 14 | **Fixed** (14). |
+| H4 | Docs promised a roughness slider that does not exist | **Fixed** the text (params note, DATA_SOURCES, methods.html). |
+| H5 | DONKI "27 events, detections" overstated | **Fixed.** "27 records on 6 days: 17 detections, 10 model forecasts"; example is now a real detection. |
+| H6 | Lunar/Apollo values without "proxy" | **Fixed.** Proxy badge on the 20° slope limit, stop-card work rates and the walking model. |
+| H7 | No on-screen THEMIS credit; HUD had none | **Fixed.** THEMIS credit appears while a THEMIS layer is on; HUD footer credits HiRISE/USGS. |
+| H8 | README stale, no live link, 3.0 km | **Fixed.** |
+| H9 | First 10 seconds: no "what to try", markers unexplained, Layers panel covers the map, jargon | **Fixed:** "Try: press HUD mode then Play…" line, map legend for habitat/stop colours/numbers, Layers panel starts collapsed, EVA/SEP/HUD spelled out. |
+| L10-L22 | Habitat badged "real"; rover table badge; overstated rover sentence; tornado 36→35 min; HUD "60" without unit; "DECISIONS T29/T32" and "Son's rubric" in the UI; stop-card source line; far rover photos; Methods page `A\*` and Tobler `|`; DONKI URL missing `api_key`; HiRISE citation → "Fergason et al."; O2 tank arithmetic basis; no THEMIS legend | **Fixed.** |
+| L23 | HUD events pressed at T+0:00 show "EVA complete" | Open (harmless). |
+| L24 | Phone width (390 px) overflows by 16 px | Open (phones are not a SPEC target). |
+| L25 | `submission/` empty; "Use of SI" text not written | Phase 5. |
+| L26 | Header says "Plans a **safe** … Marswalk", a strong word for a modeled study | Open: Son's call (it changes what judges read first). |
+
+### Phase 4 known issues (for Son)
+1. **Firefox is still untested.** This container only has Chromium. Please open the live link in Firefox once (needs Firefox 114+); Chrome and Edge are covered.
+2. **Windows still untested here.** The live site does not care about Windows; the Python pipeline still needs one `pytest` run on your PC.
+3. In the map legend, "Transported boulders" and "Too far from shelter" share the same reddish-purple colour (one is a dot, one is a route line). Cosmetic.
+4. The open review items L23, L24, L26 above.
+
+### Phase 3 record (web app: COMPLETE; Son's click-through accepted when he started Phase 4)
 
 ### Done in Phase 3 (Fri 2026-11-13, ~2 h 30 min)
 **Run it (Windows PowerShell, from the project folder):**
@@ -209,4 +251,4 @@ Cut first → last. The "Keep" list in SPEC §10 is unchanged.
 8. OR-Tools scheduling (cut last: priority #1; fallback = fixed stop order with timing)
 
 ## Next
-Phase 4 (validate, polish, deploy): independent reviewer subagent, Firefox check, GitHub Pages deploy, live URL test. Son decides the repo name/URL.
+Phase 5 (submission package, SPEC §8): project_page.md, ≤7-slide deck, video script, README results, resume bullets, CHECKLIST.md.

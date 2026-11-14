@@ -123,7 +123,7 @@ terrain:
     value: 0.2
     unit: m RMS
     source_or_assumption: assumption
-    note: "Placeholder, no source; slider in the app. Measured on this DTM: 0.095% of cells exceed 0.2 m and 84% of those are also > 20 deg slope (0.5 m flagged only 0.004%). A 1 m DTM cannot see rocks smaller than a few metres, so roughness mainly marks scarp edges and works best as a soft penalty (Phase 2)."
+    note: "Placeholder, no source; fixed in the app (only the slope limit has a slider). Measured on this DTM: 0.095% of cells exceed 0.2 m and 84% of those are also > 20 deg slope (0.5 m flagged only 0.004%). A 1 m DTM cannot see rocks smaller than a few metres, so roughness mainly marks scarp edges and works best as a soft penalty (Phase 2)."
   hillshade_azimuth_deg:
     value: 315
     unit: deg from north
@@ -173,7 +173,7 @@ human_factors:
     note: "Uphill the crew slows down so metabolic power stays at the level-walking rate; never faster than the level pace (also downhill). Checked against Apollo 14 traverse legs in METHODS.md."
   tobler_hiking_function:
     value: [6.0, 3.5, 0.05]
-    unit: "km/h, -, -  (W = a * exp(-b * |S + c|), S = dh/dx)"
+    unit: "km/h, -, -  (W = a * exp(-b * abs(S + c)), S = dh/dx)"
     source_or_assumption: "Tobler, W. (1993), 'Three presentations on geographical analysis and modeling', NCGIA Technical Report 93-1, p.4 (Figure II): 'W = 6 exp( -3.5 * abs(S + 0.05)) ... S is dh/dx = slope = tan(theta) ... velocity is given in km/hr'. Read from the PDF supplied by Son, 2026-11-13."
     note: "Earth, unsuited, on footpaths. Used ONLY in the alternative model check (shape of speed vs grade, rescaled to the 2 km/h suited level pace)."
   minetti_walk_coeffs:
@@ -238,7 +238,7 @@ consumables:
   o2_capacity_kg:
     value: 0.823
     unit: kg usable O2 per suit
-    source_or_assumption: "assumption, derived: 8 h x 352 W x 0.0810 kg/MJ. 8 h = xEMU design life ('designed for 8-hour autonomous performance', NASA ICES-2026-126 p.3) and 352 W = xEMU average design rate (BVAD p.135)."
+    source_or_assumption: "assumption, derived: 8 h x 1.27 MJ/h (= 352 W, BVAD's rounded figure) x 0.0810 kg/MJ. 8 h = xEMU design life ('designed for 8-hour autonomous performance', NASA ICES-2026-126 p.3) and 352 W = xEMU average design rate (BVAD p.135)."
     note: "No verified Mars-suit tank size. Cross-check: the Apollo -7 PLSS held 'a minimum of 1.340 pounds' (0.608 kg) usable O2, 'ample for a 5-hour EVA at 1200-Btu/hr' (Apollo EMU Operations Handbook CSD-A-789, p.2-89, https://ntrs.nasa.gov/api/citations/19730064704/downloads/19730064704.pdf)."
   o2_reserve_fraction:
     value: 0.15

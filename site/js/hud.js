@@ -171,7 +171,7 @@ export function initHUD(A) {
     $('#hud-dist').textContent = dist < 15 ? 'here' : `${Math.round(dist)} m`;
     $('#hud-brg').textContent = dist < 15 ? '' : `bearing ${String(Math.round(brg)).padStart(3, '0')}° (straight line)`;
     $('#hud-left').textContent = fmtT(limitS - H.T);
-    $('#hud-home').textContent = `${Math.round(st.back_s / 60)} min · shelter limit ${A.cur.shelterMin}`;
+    $('#hud-home').textContent = `${Math.round(st.back_s / 60)} min · shelter limit ${A.cur.shelterMin} min`;
     const o2pct = 100 * (cap - reserve - st.o2) / cap;
     const el = $('#hud-o2'); el.textContent = `${Math.max(0, o2pct).toFixed(0)} %`; el.style.color = o2pct < 10 ? '#ff6b5b' : '';
     $('#hud-bat').textContent = `${Math.max(0, 100 * (1 - draw * H.T / 3600 / bat)).toFixed(0)} %`;

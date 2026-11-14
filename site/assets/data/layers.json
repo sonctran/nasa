@@ -39,7 +39,7 @@
       "kind": "real",
       "units": "brightness (DN)",
       "cell_m": 1.0,
-      "credit": "Orthomosaic: Fergason, Galuszka & Hare 2020, USGS, doi:10.5066/P9QJDP48. HiRISE data: NASA/JPL-Caltech/University of Arizona",
+      "credit": "Orthomosaic: Fergason et al. 2020, USGS, doi:10.5066/P9QJDP48. HiRISE data: NASA/JPL-Caltech/University of Arizona",
       "processing": "25 cm mosaic averaged to 1 m, reprojected, linear stretch DN 26-212"
     },
     {
@@ -59,7 +59,7 @@
       "kind": "real",
       "units": "m (areoid)",
       "cell_m": 2.0,
-      "credit": "DTM mosaic: Fergason, Galuszka & Hare 2020, USGS, doi:10.5066/P9REJ9JN. HiRISE data: NASA/JPL-Caltech/University of Arizona",
+      "credit": "DTM mosaic: Fergason et al. 2020, USGS, doi:10.5066/P9REJ9JN. HiRISE data: NASA/JPL-Caltech/University of Arizona",
       "legend": [
         {
           "value": -2578.96,
@@ -208,7 +208,7 @@
       "kind": "derived",
       "units": "-",
       "cell_m": 2.0,
-      "credit": "DTM mosaic: Fergason, Galuszka & Hare 2020, USGS, doi:10.5066/P9REJ9JN. HiRISE data: NASA/JPL-Caltech/University of Arizona",
+      "credit": "DTM mosaic: Fergason et al. 2020, USGS, doi:10.5066/P9REJ9JN. HiRISE data: NASA/JPL-Caltech/University of Arizona",
       "processing": "Lambertian, sun azimuth 315 deg, altitude 45 deg"
     },
     {
@@ -228,7 +228,7 @@
       "kind": "derived",
       "units": "deg",
       "cell_m": 2.0,
-      "credit": "DTM mosaic: Fergason, Galuszka & Hare 2020, USGS, doi:10.5066/P9REJ9JN. HiRISE data: NASA/JPL-Caltech/University of Arizona",
+      "credit": "DTM mosaic: Fergason et al. 2020, USGS, doi:10.5066/P9REJ9JN. HiRISE data: NASA/JPL-Caltech/University of Arizona",
       "legend": [
         {
           "value": 0.0,
@@ -410,7 +410,7 @@
       "kind": "derived",
       "units": "m RMS",
       "cell_m": 2.0,
-      "credit": "DTM mosaic: Fergason, Galuszka & Hare 2020, USGS, doi:10.5066/P9REJ9JN. HiRISE data: NASA/JPL-Caltech/University of Arizona",
+      "credit": "DTM mosaic: Fergason et al. 2020, USGS, doi:10.5066/P9REJ9JN. HiRISE data: NASA/JPL-Caltech/University of Arizona",
       "legend": [
         {
           "value": 0.0,
@@ -552,7 +552,7 @@
       "kind": "assumption",
       "units": "-",
       "cell_m": 2.0,
-      "credit": "DTM mosaic: Fergason, Galuszka & Hare 2020, USGS, doi:10.5066/P9REJ9JN. HiRISE data: NASA/JPL-Caltech/University of Arizona",
+      "credit": "DTM mosaic: Fergason et al. 2020, USGS, doi:10.5066/P9REJ9JN. HiRISE data: NASA/JPL-Caltech/University of Arizona",
       "color": "#d55e00",
       "processing": "slope > 20 deg OR roughness > 0.2 m OR no data (thresholds are assumptions)"
     },
@@ -617,7 +617,7 @@
           2050.0
         ]
       ],
-      "credit": "Orthomosaic: Fergason, Galuszka & Hare 2020, USGS, doi:10.5066/P9QJDP48. HiRISE data: NASA/JPL-Caltech/University of Arizona",
+      "credit": "Orthomosaic: Fergason et al. 2020, USGS, doi:10.5066/P9QJDP48. HiRISE data: NASA/JPL-Caltech/University of Arizona",
       "processing": "25 cm, reprojected; stretch DN 78-101"
     }
   ],

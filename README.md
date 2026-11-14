@@ -4,11 +4,13 @@
 
 NASA Space Apps Challenge 2026 · Challenge: *Interplanetary Survival Guide: Martian Map* · Team: Marswalk Ops (Son Tran)
 
-> Status: **Phase 3 (web app) built.** Real NASA/USGS data is processed into map layers; the planner picks the stops and the route and scores the risk; the web app shows it all and re-plans live in the browser. Public deployment comes in Phase 4. See `PROGRESS.md` and `docs/METHODS.md`.
+**Live app: https://sonctran.github.io/nasa/** (no login; works in Chrome and Edge, desktop or tablet) · Repo: https://github.com/sonctran/nasa
+
+> Status: **Phase 4 (validate + deploy) done.** The app is public on GitHub Pages and redeploys on every push. An independent review checked the numbers, labels and credits; see `PROGRESS.md`.
 
 ![Marswalk Ops planning view](docs/screenshots/01_first_screen_plan.jpg)
 
-**Phase 2 results (modeled):** the recommended plan visits 3 real Perseverance sample sites plus the Three Forks depot: 26 science points, 3.0 km, 267 of 360 min. It gets home on time in **98.2 %** of 20,000 Monte Carlo runs, and all 9 go/no-go checks pass. A 30-point plan sits right on the 95 % safety bar (94.96 % to 95.9 %, depending on the walking model). Stop order is solved to proven optimality with OR-Tools CP-SAT.
+**Results (modeled):** the recommended plan visits 3 real Perseverance sample sites plus the Three Forks depot: 26 science points, 3.05 km, 267 of 360 min. It gets home on time in **98.2 %** of 20,000 Monte Carlo runs, and all 9 go/no-go checks pass. A 30-point plan sits right on the 95 % safety bar (94.96 % to 95.9 %, depending on the walking model). Stop order is solved to proven optimality with OR-Tools CP-SAT.
 
 ## Run it locally (Windows PowerShell)
 
@@ -54,7 +56,7 @@ Click-through test with screenshots (saved in `docs\screenshots\`, plus `report.
 ## Data credits
 
 Full list with exact URLs: `docs/DATA_SOURCES.md`.
-- HiRISE DTM and orthomosaic: Fergason, Galuszka & Hare 2020, USGS Astrogeology (doi:10.5066/P9REJ9JN, doi:10.5066/P9QJDP48). HiRISE data: NASA/JPL-Caltech/University of Arizona.
+- HiRISE DTM and orthomosaic: Fergason et al. 2020, USGS Astrogeology (doi:10.5066/P9REJ9JN, doi:10.5066/P9QJDP48). HiRISE data: NASA/JPL-Caltech/University of Arizona.
 - CTX DTM (cross-check): USGS (doi:10.5066/P906QQT8). CTX data: NASA/JPL-Caltech/MSSS.
 - THEMIS IR: NASA/JPL-Caltech/Arizona State University, via NASA Mars Trek.
 - Perseverance traverse, waypoints and raw images: NASA/JPL-Caltech (Mastcam-Z: NASA/JPL-Caltech/ASU).
@@ -71,7 +73,7 @@ This project uses AI tools, and says so openly:
 - **Code generation:** most code (data pipeline, planner and web app) is written with Claude Code, then reviewed and tested.
 - **Research and writing:** Claude Code helped find and check data sources and draft docs.
 
-Any AI-generated image will carry a visible "AI-generated" watermark. The app prefers real NASA imagery and real screenshots.
+No AI-generated images are used: every picture is real NASA/USGS imagery or a real screenshot of the app. Any AI-generated image added later must carry a visible "AI-generated" watermark. The app prefers real NASA imagery and real screenshots.
 
 ## License
 

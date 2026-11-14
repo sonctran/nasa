@@ -25,8 +25,8 @@ from .common import PROCESSED, RAW, SITE, SITE_DATA, SITE_LAYERS, Grid, grid_fro
 from .crop import block_reduce, warp_to_grid
 
 HIRISE = "HiRISE data: NASA/JPL-Caltech/University of Arizona"
-DTM_CREDIT = f"DTM mosaic: Fergason, Galuszka & Hare 2020, USGS, doi:10.5066/P9REJ9JN. {HIRISE}"
-ORTHO_CREDIT = f"Orthomosaic: Fergason, Galuszka & Hare 2020, USGS, doi:10.5066/P9QJDP48. {HIRISE}"
+DTM_CREDIT = f"DTM mosaic: Fergason et al. 2020, USGS, doi:10.5066/P9REJ9JN. {HIRISE}"
+ORTHO_CREDIT = f"Orthomosaic: Fergason et al. 2020, USGS, doi:10.5066/P9QJDP48. {HIRISE}"
 THEMIS_CREDIT = "THEMIS IR mosaic: NASA/JPL-Caltech/Arizona State University, via NASA Mars Trek"
 NOGO_RGB = (213, 94, 0)  # Okabe-Ito vermillion: visible to common colour-vision deficiencies
 
