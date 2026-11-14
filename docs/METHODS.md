@@ -81,7 +81,7 @@ The plan of record uses NASA numbers plus a muscle-efficiency value from Minetti
 ## 6. Robust plan (Monte Carlo + ranking)
 
 - The optimiser is run with time budgets of 70–100 % of the 6 h limit. Each budget gives one candidate plan.
-- Each candidate is simulated **20,000 times**. Each run draws a crew walking-speed factor and a metabolic-rate factor (one each per run), plus a work-time factor for each stop. All are log-normal with median 1, with σ = 0.15, 0.20 and 0.30 (assumptions).
+- Each candidate is simulated **20,000 times**. Each run draws a crew walking-speed factor and a metabolic-rate factor (one each per run), plus a work-time factor for each stop. All are log-normal with median 1, with σ = 0.15, 0.20 and 0.30 (assumptions). A slower crew takes longer to walk but is assumed to use the same walking energy (and O₂) per metre; a task that runs long does use more O₂ (assumptions).
 - **Robust plan** = the plan with the most science whose chance of getting home within 6 h, with O₂ above reserve, is at least **95 %** (Son's upgrade S4).
 
 | Budget | Stops (in order) | Points | Planned | P(home on time & O₂ OK) |

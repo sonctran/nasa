@@ -1,8 +1,9 @@
 """Traverse cost model: walking time, metabolic energy and hazard for every grid edge (SPEC 6.1-6.2).
 
-Every number comes from config/params.yaml, where each value carries its NASA source or is
-labelled "assumption". Tobler (1993) and Minetti et al. (2002) could not be read from this
-project (bot checks), so they are NOT used (DECISIONS T27).
+Every number comes from config/params.yaml, where each value carries its source or is
+labelled "assumption". Tobler (1993) and Minetti et al. (2002) were read from PDFs the owner
+supplied (DECISIONS T39): Minetti's measured uphill efficiency is used in the plan of record,
+and Tobler + Minetti together form the alternative check model below.
 
 Notation: g = grade of an edge (rise / run), theta = atan(g), L_h = horizontal length,
 L_s = L_h * sqrt(1 + g^2) = length along the ground, M = body + suit + kit mass,
@@ -12,7 +13,8 @@ Energy per metre along the ground
     level / downhill:  e(g) = P0 / v0                          (no downhill credit: assumption)
     uphill:            e(g) = P0 / v0 + M * g_M * sin(theta) / eta
     The uphill term is the work of lifting body + suit in Mars gravity, divided by the
-    muscle efficiency eta (assumption). Edge energy E = e(g) * L_s.
+    muscle efficiency eta (0.243, Minetti et al. 2002; applied to all uphill grades: assumption).
+    Edge energy E = e(g) * L_s.
 Speed (constant-power pacing, assumption)
     v(g) = min(v0, P0 / e(g))   ->  v0 on level ground and downhill, slower uphill.
     Walking power therefore never goes above P0. Edge time T = L_s / v(g).

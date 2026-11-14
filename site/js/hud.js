@@ -36,9 +36,11 @@ export function initHUD(A) {
   const rowAt = (tr, T) => tr.rows.find((r) => T >= r.t0 && T < r.t1) || tr.rows.at(-1);
 
   // Build the rest of the track from a re-plan result, starting at time T0 with O2 used O0.
-  function extendTrack(tr, T0, st, rp) {
+  // backScale = old pace factor / new pace factor: the walk-home time at the event instant was
+  // computed at the old pace and must be shown at the new one (a slower crew is farther from home).
+  function extendTrack(tr, T0, st, rp, backScale = 1) {
     const kf = tr.kf.filter((p) => p.t < T0);
-    kf.push({ t: T0, xy: st.xy, o2: st.o2, back_s: st.back_s, idx: st.idx });
+    kf.push({ t: T0, xy: st.xy, o2: st.o2, back_s: st.back_s * backScale, idx: st.idx });
     const rows = tr.rows.filter((r) => r.t0 < T0).map((r) => ({ ...r, t1: Math.min(r.t1, T0), t1_min: Math.min(r.t1, T0) / 60 }));
     let t = T0, o = st.o2;
     const sites = A.res.sites;
@@ -77,6 +79,7 @@ export function initHUD(A) {
     const st = finishing ? stateAt(H.track, T) : st0;
     const planned = H.track.rows.filter((r) => r.kind === 'work').map((r) => r.at);
     const remaining = planned.filter((id) => !doneIds.has(id)).map((id) => sites.findIndex((s) => s.id === id));
+    const paceBefore = H.f.speed;
     if (kind === 'slow') { H.f.speed *= pv('replan.slow_crew_speed_factor'); H.f.work *= pv('replan.slow_crew_work_factor'); }
     if (kind === 'o2') H.f.o2 *= pv('replan.suit_fault_o2_factor');
     const here = st.idx;
@@ -87,7 +90,7 @@ export function initHUD(A) {
              speedF: H.f.speed, workF: H.f.work, o2F: H.f.o2 } });
     const wall = performance.now() - t0;
     if (kind === 'sep') res.stops = [];
-    H.track = extendTrack(H.track, T, st, res);
+    H.track = extendTrack(H.track, T, st, res, paceBefore / H.f.speed);
     H.T = T;
     const name = (k) => sites[k].name.replace(/ \(.*\)/, '');
     const dropped = remaining.filter((k) => !res.stops.includes(k)).map(name);

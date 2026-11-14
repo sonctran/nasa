@@ -9,7 +9,7 @@ All three are log-normal with median 1 and a spread taken from params.yaml (assu
 Per run:  walk time = planned / S ;  work time = planned * D_i
           oxygen    = planned walking O2 * M + planned work O2 * M * D_i
 (Walking energy per metre barely depends on pace near the preferred speed, so a slower
-crew takes longer but burns about the same energy per metre: assumption, see ASSUMPTIONS.md.)
+crew takes longer but burns about the same energy per metre: assumption, see METHODS.md section 6.)
 The walkback margin is checked at every cell of the route (vectorised).
 """
 from __future__ import annotations

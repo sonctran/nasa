@@ -24,7 +24,7 @@ const CAT = {
   depot: { col: Ch.C.green, label: 'Sample depot (required)' },
   waypoint: { col: Ch.C.yellow, label: 'Your waypoint' },
 };
-const ROUTE = Ch.C.yellow, SEPCOL = Ch.C.purple;   // plan route / SEP-rule violations
+const ROUTE = Ch.C.yellow, SEPCOL = '#ff6b5b';     // plan route / SEP-rule violations (the NO-GO red)
 const ROUTE_COL = { fastest: Ch.C.orange, lowest_energy: Ch.C.blue, safest: Ch.C.green, balanced: Ch.C.sky, shortest: Ch.C.grey };
 
 // ---------------------------------------------------------------- worker RPC
@@ -145,6 +145,7 @@ function setupMap() {
   legendControl();
   readoutControl();
   map.on('click', onMapClick);
+  map.on('zoomend', () => { if (A.cur) drawStops(); });      // marker spacing depends on the zoom
   map.on('mousemove', (e) => updateReadout(e.latlng));
 }
 
@@ -197,6 +198,30 @@ function updateAttribution() {
   ac.removeAttribution(THEMIS_CREDIT);
   if (on) ac.addAttribution(THEMIS_CREDIT);
 }
+// The no-go picture file is drawn for the default 20 deg rule. When the user moves the slope slider,
+// draw the planner's own 10 m no-go cells instead, so the map always shows the rule in use.
+function nogoMaskURL() {
+  const g = A.grid, cv = document.createElement('canvas');
+  cv.width = g.cols; cv.height = g.rows;
+  const ctx = cv.getContext('2d'), im = ctx.createImageData(g.cols, g.rows);
+  const hex = A.raster.nogo.lyr.color || '#d55e00';
+  const [cr, cg, cb] = [1, 3, 5].map((k) => parseInt(hex.slice(k, k + 2), 16));
+  const sn = A.cur.slopeNogo, rn = pv('terrain.roughness_nogo_m');
+  for (let i = 0; i < g.n; i++) {
+    if (!(g.nodata[i] || g.slope[i] > sn || g.rough[i] > rn)) continue;
+    im.data[4 * i] = cr; im.data[4 * i + 1] = cg; im.data[4 * i + 2] = cb; im.data[4 * i + 3] = 255;
+  }
+  ctx.putImageData(im, 0, 0);
+  return cv.toDataURL();
+}
+function nogoIsLive() { return !!A.cur && A.cur.slopeNogo !== pv('terrain.slope_nogo_deg'); }
+function updateNogoLayer() {
+  const r = A.raster.nogo;
+  const want = nogoIsLive() ? 'live' + A.cur.slopeNogo : 'file';
+  if (r.shown === want) return;
+  r.shown = want;
+  r.o.setUrl(nogoIsLive() ? nogoMaskURL() : 'assets/' + r.lyr.file);
+}
 function reorderLayers() {
   const order = ['ortho', 'hillshade', 'elevation', 'slope', 'roughness', 'themis_day', 'themis_night', 'nogo', 'depot_closeup'];
   for (const id of order) if (A.raster[id]?.on) A.raster[id].o.bringToFront();
@@ -221,14 +246,14 @@ function updateLegend() {
       <div class="small muted" style="display:flex;justify-content:space-between"><span>${f1(lg[0].value)}</span><span>${f1(lg.at(-1).value)}${id === 'slope' ? '+' : ''}</span></div>`;
   }
   if (A.raster.nogo.on) html += `<div><span class="sw" style="background:${A.raster.nogo.lyr.color}"></span>No-go: slope &gt; ${A.cur ? A.cur.slopeNogo : 20}° or roughness &gt; 0.2 m ${B('assumption')}</div>
-    <div class="small muted">Map layer drawn at the default 20°; the planner uses the slider value.</div>`;
+    <div class="small muted">${nogoIsLive() ? 'Drawn from the planner\'s own 10 m cells for your slope rule.' : 'Drawn at 2 m detail. The planner works on 10 m cells (90th-percentile slope).'}</div>`;
   if (A.raster.themis_day.on || A.raster.themis_night.on) html += `<div>THEMIS IR ${B('proxy')}</div><div class="small muted">Relative brightness only (not calibrated temperature), ~81 m/px.</div>`;
   html += `<div><span class="habicon sm">H</span> Habitat: start, finish, shelter</div>
     <div>${['fine_grained_layered_rock', 'delta_layer_sequence', 'transported_boulders', 'depot'].map((k) => `<span class="sw" style="background:${CAT[k].col};border-radius:50%"></span>${CAT[k].label}`).join('<br>')}</div>
     <div class="small muted">Number = stop order in your plan; · = site not in your plan (click a stop for its card).</div>
     <div><span class="sw" style="background:${ROUTE}"></span>Your plan route ${B('modeled')}</div>
     <div><span class="sw" style="background:#fff;border-radius:50%"></span>Tightest walk-back point</div>
-    <div><span class="sw" style="background:${SEPCOL}"></span>Too far from shelter (SEP rule)</div>
+    <div><span class="sw line" style="background:${SEPCOL}"></span>Too far from shelter (SEP rule)</div>
     <div><span class="sw" style="background:#fff"></span>Perseverance traverse ${B('real')}</div>`;
   d.innerHTML = html;
 }
@@ -250,9 +275,24 @@ function updateReadout(ll) {
 }
 
 // ---------------------------------------------------------------- markers & routes
-function stopIcon(s, num) {
+// Screen-pixel offsets that push overlapping stop markers apart at the current zoom.
+// The marker stays anchored at its true position; only the round badge is nudged.
+function declutter(sites) {
+  const MIN = 27;
+  const q = sites.map((s) => { const p = A.map.latLngToContainerPoint(LL([s.x, s.y])); return { id: s.id, x: p.x, y: p.y, dx: 0, dy: 0 }; });
+  for (let pass = 0; pass < 6; pass++) for (let i = 1; i < q.length; i++) for (let j = 0; j < i; j++) {
+    const a = q[i], b = q[j];
+    let vx = (a.x + a.dx) - (b.x + b.dx), vy = (a.y + a.dy) - (b.y + b.dy), d = Math.hypot(vx, vy);
+    if (d >= MIN) continue;
+    if (d < 1e-6) { vx = 1; vy = 0; d = 1; }
+    const k = (MIN - d) / 2 / d;
+    a.dx += vx * k; a.dy += vy * k; b.dx -= vx * k; b.dy -= vy * k;
+  }
+  return Object.fromEntries(q.map((o) => [o.id, [o.dx, o.dy]]));
+}
+function stopIcon(s, num, off = [0, 0]) {
   const c = CAT[s.kind === 'depot' ? 'depot' : s.category]?.col || '#fff';
-  return L.divIcon({ className: '', html: `<div class="stopicon" style="background:${c}">${num ?? '·'}</div>`, iconSize: [24, 24], iconAnchor: [12, 12] });
+  return L.divIcon({ className: '', html: `<div class="stopicon" style="background:${c};transform:translate(${off[0].toFixed(1)}px,${off[1].toFixed(1)}px)">${num ?? '·'}</div>`, iconSize: [24, 24], iconAnchor: [12, 12] });
 }
 function drawStops() {
   const g = A.vec.stops.g;
@@ -260,9 +300,10 @@ function drawStops() {
   const hab = A.plan.sites[0];
   L.marker(LL([hab.x, hab.y]), { icon: L.divIcon({ className: '', html: '<div class="habicon">H</div>', iconSize: [26, 26], iconAnchor: [13, 13] }) })
     .bindTooltip('Habitat (start, finish and the only shelter). Site picked by a stated rule: the flattest 110 m pad on the crater floor about 1 km east of the depot (assumption).').addTo(g);
+  const off = declutter(A.plan.sites.slice(1));
   A.plan.sites.slice(1).forEach((s) => {
     const pos = A.cur.order.indexOf(s.id);
-    const m = L.marker(LL([s.x, s.y]), { icon: stopIcon(s, pos >= 0 ? pos + 1 : null), riseOnHover: true })
+    const m = L.marker(LL([s.x, s.y]), { icon: stopIcon(s, pos >= 0 ? pos + 1 : null, off[s.id]), riseOnHover: true })
       .bindTooltip(`${esc(s.name)} · ${s.value} pts · ${s.dwell_min} min${pos < 0 ? ' · not in plan' : ''}`);
     m.on('click', () => { openTab('stops'); const el = document.getElementById('card-' + s.id); el?.scrollIntoView({ behavior: 'smooth' }); });
     m.addTo(g);
@@ -288,7 +329,13 @@ function drawRoute() {
     .bindTooltip(`Leg: ${f0(leg.dist_m)} m, ${f1(leg.time_s / 60)} min walking (modeled)`).addTo(g);
   // SEP-violating stretches
   let run = [];
-  const flush = () => { if (run.length > 1) L.polyline(run.map(LL), { color: SEPCOL, weight: 7, opacity: 0.95 }).bindTooltip('More than the SEP shelter limit from the habitat').addTo(g); run = []; };
+  const flush = () => {
+    if (run.length > 1) {
+      L.polyline(run.map(LL), { color: SEPCOL, weight: 7, opacity: 0.95 }).bindTooltip('More than the SEP shelter limit from the habitat').addTo(g);
+      L.polyline(run.map(LL), { color: '#111', weight: 2, dashArray: '2 7', interactive: false }).addTo(g);   // dashes: not colour alone
+    }
+    run = [];
+  };
   ev.pts.forEach((p, i) => { if (ev.safety.sep.flags[i]) run.push(p.xy); else flush(); });
   flush();
   const wb = ev.safety.walkback;
@@ -463,14 +510,14 @@ function renderStaticPanels() {
   sel.onchange = () => { const c = cands[+sel.value]; A.cur.order = c.order.slice(1, -1).map((k) => P.sites[k].id).concat(A.cur.waypoints.map((w) => w.id)); renderEditor(); drawStops(); scheduleReplan(); };
   document.querySelectorAll('[data-mode]').forEach((b) => b.onclick = () => setMode(b.dataset.mode));
   $('#clear-keep').onclick = () => { A.cur.keepouts = []; drawKeepouts(); scheduleReplan(true); };
-  $('#reset').onclick = () => { A.cur = defaultState(); sel.value = String(cands.findIndex((c) => c.value === P.robust_plan.value)); drawKeepouts(); syncControls(); renderEditor(); drawStops(); scheduleReplan(true); };
+  $('#reset').onclick = () => { A.cur = defaultState(); sel.value = String(cands.findIndex((c) => c.value === P.robust_plan.value)); drawKeepouts(); syncControls(); updateNogoLayer(); updateLegend(); renderEditor(); drawStops(); scheduleReplan(true); };
   $('#profile').onchange = () => { const v = $('#profile').value; A.cur.profile = v; if (v !== 'custom') A.cur.w = pv('route_options.' + v).slice(0, 3); syncControls(); scheduleReplan(); };
   for (const k of [0, 1, 2]) $('#w' + k).oninput = () => {
     A.cur.w[k] = +$('#w' + k).value; A.cur.profile = 'custom';
     if (A.cur.w[0] + A.cur.w[1] <= 0) { A.cur.w[0] = 0.05; }
     syncControls(); scheduleReplan();
   };
-  $('#slope').oninput = () => { A.cur.slopeNogo = +$('#slope').value; syncControls(); updateLegend(); scheduleReplan(true); };
+  $('#slope').oninput = () => { A.cur.slopeNogo = +$('#slope').value; syncControls(); updateNogoLayer(); updateLegend(); scheduleReplan(true); };
   $('#shelter').oninput = () => { A.cur.shelterMin = +$('#shelter').value; syncControls(); scheduleReplan(); };
   syncControls();
   renderEditor();

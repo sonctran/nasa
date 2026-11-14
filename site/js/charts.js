@@ -38,6 +38,13 @@ function axes(s, X, Y, box, xt, yt, xl, yl, fmtX = String, fmtY = String) {
   if (yl) el(s, 'text', { x: 12, y: (box.t + box.b) / 2, 'text-anchor': 'middle', transform: `rotate(-90 12 ${(box.t + box.b) / 2})` }, yl);
 }
 const scale = (d0, d1, r0, r1) => (v) => r0 + (v - d0) / (d1 - d0 || 1) * (r1 - r0);
+// Time axes: one tick per hour up to the end of the axis (so a 360 min limit gets its own tick).
+function hourTicks(tmax) {
+  if (tmax > 600) return niceTicks(0, tmax, 6);
+  const out = [];
+  for (let v = 0; v <= tmax + 1e-9; v += 60) out.push(v);
+  return out;
+}
 
 // ---------------------------------------------------------------- Pareto: walking time vs hazard exposure
 export function pareto(target, points, named) {
@@ -70,7 +77,7 @@ export function gantt(target, rows, limitMin, colorOf) {
   const s = svg(W, H);
   const tmax = Math.max(limitMin, rows.at(-1)?.t1_min ?? 0);
   const X = scale(0, tmax, box.l, box.r);
-  const xt = niceTicks(0, tmax, 6);
+  const xt = hourTicks(tmax);
   const g = el(s, 'g', { class: 'grid' });
   for (const t of xt) el(g, 'line', { x1: X(t), x2: X(t), y1: box.t, y2: box.b });
   for (const t of xt) el(s, 'text', { x: X(t), y: box.b + 14, 'text-anchor': 'middle' }, String(t));
@@ -97,7 +104,7 @@ export function burnDown(target, bd, limitMin) {
   const s = svg(W, H);
   const tmax = Math.max(limitMin, bd.t_min.at(-1));
   const X = scale(0, tmax, box.l, box.r), Y = scale(0, 100, box.b, box.t);
-  axes(s, X, Y, box, niceTicks(0, tmax, 6), [0, 25, 50, 75, 100], 'Minutes', 'Left (%)', String, String);
+  axes(s, X, Y, box, hourTicks(tmax), [0, 25, 50, 75, 100], 'Minutes from leaving the habitat', 'Left (%)', String, String);
   const line = (vals, col, dash) => el(s, 'polyline', { points: bd.t_min.map((t, i) => `${X(t)},${Y(vals[i])}`).join(' '),
                                                          fill: 'none', stroke: col, 'stroke-width': 2.2, ...(dash ? { 'stroke-dasharray': dash } : {}) });
   line(bd.o2_pct, C.sky);
@@ -132,9 +139,10 @@ export function histogram(target, hist, p50, p95) {
 }
 
 // ---------------------------------------------------------------- tornado (sensitivity)
+const shortInput = (t) => t.replace(/ \(.*\)/, '').replace(/^Work time: /, 'Work at ').replace('sample depot', 'depot');
 export function tornado(target, t) {
   const rows = t.rows;
-  const W = 430, rowH = 26, H = 40 + rows.length * rowH, box = { l: 170, r: W - 14, t: 8, b: H - 30 };
+  const W = 430, rowH = 26, H = 40 + rows.length * rowH, box = { l: 150, r: W - 52, t: 8, b: H - 30 };
   const s = svg(W, H);
   const all = rows.flatMap((r) => r.duration_min).concat([t.base_duration_min]);
   const lo = Math.min(...all) - 3, hi = Math.max(...all) + 3;
@@ -143,16 +151,18 @@ export function tornado(target, t) {
     el(s, 'line', { x1: X(v), x2: X(v), y1: box.t, y2: box.b, stroke: '#262c34' });
     el(s, 'text', { x: X(v), y: box.b + 14, 'text-anchor': 'middle' }, String(v));
   }
-  el(s, 'text', { x: (box.l + box.r) / 2, y: box.b + 28, 'text-anchor': 'middle' }, 'EVA duration (min) at the 10th / 90th percentile of each input');
+  el(s, 'text', { x: (box.l + box.r) / 2, y: box.b + 28, 'text-anchor': 'middle' }, 'EVA duration (min), input at its 10th / 90th percentile');
   rows.forEach((r, i) => {
     const y = box.t + i * rowH + 4;
     const [a, b] = r.duration_min;
-    const name = r.input.length > 30 ? r.input.slice(0, 29) + '…' : r.input;
-    el(s, 'text', { x: box.l - 6, y: y + 13, 'text-anchor': 'end' }, name);
+    el(s, 'text', { x: box.l - 6, y: y + 13, 'text-anchor': 'end' }, shortInput(r.input));
     const x0 = X(Math.min(a, b)), x1 = X(Math.max(a, b));
     const shorter = Math.min(a, b), longer = Math.max(a, b);
     el(s, 'rect', { x: X(shorter), y, width: X(t.base_duration_min) - X(shorter), height: rowH - 8, fill: C.sky });
     el(s, 'rect', { x: X(t.base_duration_min), y, width: X(longer) - X(t.base_duration_min), height: rowH - 8, fill: C.orange });
+    // direct label: how many minutes this one input can move the EVA
+    el(s, 'text', { x: Math.max(x1, X(t.base_duration_min)) + 5, y: y + 13, style: `fill:${C.text}` },
+       r.swing_min < 0.5 ? '0 min (changes O2, not time)' : `${r.swing_min.toFixed(0)} min`);
     const tt = el(s, 'rect', { x: x0, y, width: x1 - x0, height: rowH - 8, fill: 'transparent' });
     el(tt, 'title', {}, `${r.input}: ${r.low_label} -> ${a.toFixed(0)} min, ${r.high_label} -> ${b.toFixed(0)} min (swing ${r.swing_min.toFixed(0)} min)`);
   });
