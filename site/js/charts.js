@@ -71,6 +71,51 @@ export function pareto(target, points, named) {
   target.replaceChildren(s);
 }
 
+// ---------------------------------------------------------------- candidate plans: science vs chance of success
+// cands: [{value, planned_min, p_success}]; opts: {bar (0-1), pick (value of the recommended plan),
+// alt: {value: p_success with the second walking model}, onPick(index)}
+export function candidates(target, cands, opts) {
+  const W = 430, H = 262, box = { l: 48, r: W - 16, t: 40, b: H - 54 };
+  const s = svg(W, H);
+  const alt = opts.alt || {};
+  const all = cands.map((c) => 100 * c.p_success).concat(Object.values(alt).map((v) => 100 * v), [100 * opts.bar]);
+  const y0 = Math.floor((Math.min(...all) - 3) / 5) * 5;
+  const xs = cands.map((c) => c.value);
+  const X = scale(Math.min(...xs) - 3, Math.max(...xs) + 3, box.l, box.r), Y = scale(y0, 100, box.b, box.t);
+  const g = el(s, 'g', { class: 'grid' });
+  for (const t of niceTicks(y0, 100, 5)) {
+    el(g, 'line', { x1: box.l, x2: box.r, y1: Y(t), y2: Y(t) });
+    el(s, 'text', { x: box.l - 6, y: Y(t) + 4, 'text-anchor': 'end' }, `${t} %`);
+  }
+  el(s, 'text', { x: 12, y: (box.t + box.b) / 2, 'text-anchor': 'middle', transform: `rotate(-90 12 ${(box.t + box.b) / 2})` }, 'Home on time, O2 OK');
+  const yb = Y(100 * opts.bar);
+  el(s, 'line', { x1: box.l, x2: box.r, y1: yb, y2: yb, stroke: C.text, 'stroke-width': 1.4, 'stroke-dasharray': '5 4' });
+  el(s, 'text', { x: box.r, y: yb + 13, 'text-anchor': 'end', style: `fill:${C.text}` }, `${Math.round(100 * opts.bar)} % bar`);
+  el(s, 'polyline', { points: cands.map((c) => `${X(c.value)},${Y(100 * c.p_success)}`).join(' '), fill: 'none', stroke: C.grey, 'stroke-width': 1.5 });
+  cands.forEach((c, i) => {
+    const x = X(c.value), y = Y(100 * c.p_success), ok = c.p_success >= opts.bar, pick = c.value === opts.pick;
+    if (alt[c.value] != null) {
+      const ya = Y(100 * alt[c.value]);
+      const d = el(s, 'path', { d: `M${x} ${ya - 5} L${x + 5} ${ya} L${x} ${ya + 5} L${x - 5} ${ya} Z`, fill: 'none', stroke: C.grey, 'stroke-width': 1.6 });
+      el(d, 'title', {}, `Second walking model (Tobler + Minetti check): ${(100 * alt[c.value]).toFixed(1)} %`);
+    }
+    if (pick) el(s, 'circle', { cx: x, cy: y, r: 11, fill: 'none', stroke: C.text, 'stroke-width': 2 });
+    const dot = el(s, 'circle', { cx: x, cy: y, r: 6.5, fill: ok ? C.sky : C.verm, stroke: '#111', 'stroke-width': 1.5, style: 'cursor:pointer' });
+    el(dot, 'title', {}, `${c.value} points, ${c.planned_min.toFixed(0)} min planned: ${(100 * c.p_success + 1e-7).toFixed(2)} % (click to load this plan)`);
+    if (opts.onPick) dot.addEventListener('click', () => opts.onPick(i));
+    const close = Math.abs(c.p_success - opts.bar) < 0.005;
+    const lab = `${(100 * c.p_success + 1e-7).toFixed(close ? 2 : 1)} %`;   // 94.955 -> 94.96, as in the docs
+    // plans that meet the bar are labelled above their dot, the others below-left (clear of the line)
+    if (ok) el(s, 'text', { x, y: y - (pick ? 17 : 12), 'text-anchor': 'middle', style: `fill:${C.text};font-weight:600` }, lab);
+    else el(s, 'text', { x: x - 10, y: y + 19, 'text-anchor': 'end', style: `fill:${C.text};font-weight:600` }, lab);
+    if (pick) el(s, 'text', { x, y: y - 31, 'text-anchor': 'middle', style: `fill:${C.text}` }, 'recommended');
+    el(s, 'text', { x, y: box.b + 16, 'text-anchor': 'middle', style: `fill:${C.text}` }, `${c.value} pts`);
+    el(s, 'text', { x, y: box.b + 30, 'text-anchor': 'middle' }, `${c.planned_min.toFixed(0)} min`);
+  });
+  el(s, 'text', { x: (box.l + box.r) / 2, y: box.b + 47, 'text-anchor': 'middle' }, 'Science points and planned EVA length of each candidate plan');
+  target.replaceChildren(s);
+}
+
 // ---------------------------------------------------------------- Gantt: EV1 and EV2 lanes
 export function gantt(target, rows, limitMin, colorOf) {
   const W = 430, H = 150, box = { l: 40, r: W - 10, t: 10, b: H - 36 };

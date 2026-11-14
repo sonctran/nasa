@@ -471,6 +471,25 @@ function renderStaticPanels() {
     <p class="small muted">The "Robust" rule: the most science points whose chance of getting home on time (with O2 above reserve) is at least ${Math.round(pv('schedule.robust_p_on_time') * 100)} % ${B('owner-set')}.
       Stop choice and order solved exactly with OR-Tools CP-SAT (${P.robust_plan.solver_status.toLowerCase()}, ${f0(P.robust_plan.solve_ms)} ms) by the Python planner.</p>
 
+    <h3>Why this plan: science against risk ${B('modeled')}</h3>
+    <div id="cands"></div>
+    <div class="legendrow"><span><span class="sw" style="background:${Ch.C.sky};border-radius:50%"></span>meets the bar</span><span><span class="sw" style="background:${Ch.C.verm};border-radius:50%"></span>under the bar</span><span>◇ second walking model (check)</span></div>
+    <p class="why" id="why-cands"></p>
+    <details class="formulation"><summary>How the stops are chosen (the optimization)</summary>
+      <table>
+        <tr><td>Decide</td><td>which stops to visit and in which order: one closed tour from the habitat</td></tr>
+        <tr><td>Maximise</td><td>science points; among equal plans, the shortest EVA</td></tr>
+        <tr><td>Time</td><td>walking + work ≤ the time budget (one plan per budget: ${pv('schedule.budget_fractions').map((f) => Math.round(f * 100)).join(', ')} % of ${A.limitMin} min)</td></tr>
+        <tr><td>Oxygen</td><td>O2 used ≤ tank minus the ${Math.round(100 * pv('consumables.o2_reserve_fraction'))} % reserve ${B('assumption')}</td></tr>
+        <tr><td>Must do</td><td>the depot (sample tubes) is on every tour</td></tr>
+        <tr><td>Shelter</td><td>stops more than ${pv('sep.shelter_time_limit_min')} min from the habitat are not offered ${B('assumption')}${P.sites.some((x) => x.sep_ok === false) ? ': ' + P.sites.filter((x) => x.sep_ok === false).map((x) => `${esc(x.name.replace(/ \(.*\)/, ''))} (${f0(x.walk_home_min)} min)`).join(', ') : ''}</td></tr>
+        <tr><td>Travel times</td><td>the Balanced route between every pair of sites (${P.sites.length} × ${P.sites.length} matrix, A* / Dijkstra on the 10 m grid)</td></tr>
+        <tr><td>Solver</td><td>Google OR-Tools CP-SAT, an exact solver: every candidate proven ${P.robust_plan.solver_status.toLowerCase()} in ${f0(Math.min(...P.candidates.map((c) => c.solve_ms)))}-${f0(Math.max(...P.candidates.map((c) => c.solve_ms)))} ms; checked against brute force in the tests</td></tr>
+        <tr><td>Then</td><td>each candidate is simulated ${f0(mc.runs)} times; the rule above picks the plan</td></tr>
+      </table>
+      <p class="small muted">This is a prize-collecting orienteering problem. Full description: <a href="methods.html">Methods</a>, section 5.</p>
+    </details>
+
     <h2>Your plan (live) ${B('modeled')}</h2>
     <p class="small muted">Change anything below: the route, timeline, safety checks and a ${f0(pv('montecarlo.runs'))}-run Monte Carlo are recomputed in your browser (Web Worker).</p>
     <div class="row"><label>Start from a candidate plan <select id="cand"></select></label></div>
@@ -508,6 +527,16 @@ function renderStaticPanels() {
   const cands = P.candidates.map((c) => ({ ...c, label: `${c.value} pts: ${c.stops.map((id) => siteById(id).name.replace(/ \(.*\)/, '')).join(', ')} · ${pct(c.p_success + 1e-9, 2)} on time${c.value === P.robust_plan.value ? ' (recommended)' : (c.p_success < pv('schedule.robust_p_on_time') ? ` (under the ${Math.round(100 * pv('schedule.robust_p_on_time'))} % bar)` : '')}` }));
   sel.innerHTML = cands.map((c, i) => `<option value="${i}" ${c.value === P.robust_plan.value ? 'selected' : ''}>${esc(c.label)}</option>`).join('');
   sel.onchange = () => { const c = cands[+sel.value]; A.cur.order = c.order.slice(1, -1).map((k) => P.sites[k].id).concat(A.cur.waypoints.map((w) => w.id)); renderEditor(); drawStops(); scheduleReplan(); };
+  // science-vs-risk chart of the candidate plans (click a dot to load that plan below)
+  const tgt = pv('schedule.robust_p_on_time');
+  const altP = Object.fromEntries((P.alt_model_check?.candidates || []).map((c) => [c.value, c.p_success]));
+  Ch.candidates($('#cands'), P.candidates, { bar: tgt, pick: P.robust_plan.value, alt: altP,
+                                             onPick: (i) => { sel.value = String(i); sel.onchange(); $('#stoplist').scrollIntoView({ behavior: 'smooth', block: 'center' }); } });
+  const under = P.candidates.filter((c) => c.p_success < tgt).sort((a, b) => a.value - b.value)[0];
+  const top = P.max_science_plan;
+  $('#why-cands').innerHTML = `<b>Why this matters.</b> Each extra stop buys science and spends the time buffer. The rule keeps the last plan above the ${Math.round(100 * tgt)} % line: ${rp.value} points at ${pct(mc.p_success)}.
+    ${under ? `The ${under.value}-point plan ${tgt - under.p_success < 0.01 ? 'sits right on the line' : 'falls short'} (${pct(under.p_success + 1e-9, 2)}${altP[under.value] != null ? `; the second walking model gives ${pct(altP[under.value])}` : ''}), so that choice is a close call.` : ''}
+    ${top && top.value !== rp.value && top.value !== under?.value ? `Taking all ${top.value} points gets the crew home on time in only ${pct(top.p_success, 0)} of runs.` : ''} Click a dot to load that plan.`;
   document.querySelectorAll('[data-mode]').forEach((b) => b.onclick = () => setMode(b.dataset.mode));
   $('#clear-keep').onclick = () => { A.cur.keepouts = []; drawKeepouts(); scheduleReplan(true); };
   $('#reset').onclick = () => { A.cur = defaultState(); sel.value = String(cands.findIndex((c) => c.value === P.robust_plan.value)); drawKeepouts(); syncControls(); updateNogoLayer(); updateLegend(); renderEditor(); drawStops(); scheduleReplan(true); };
@@ -531,8 +560,12 @@ function renderStaticPanels() {
     <p class="small muted">min = whole EVA (walking + ${f0(P.plan.totals.work_min)} min of work). caution min = minutes on cells with any hazard (slope over 10° or roughness over 0.05 m).
       min reserve = tightest walk-back margin along the route, in time and in % of the O2 tank above the reserve. Lowest-energy gives the same route as Fastest: with constant-power pacing, walking energy = 352 W × time.
       P = share of ${f0(P.montecarlo.runs)} Python Monte Carlo runs home within ${A.limitMin} min with O2 above reserve (same measure as the headline).</p>`;
+  const aF = P.alternatives.find((a) => a.id === 'fastest'), aS = P.alternatives.find((a) => a.id === 'safest'), aB = P.alternatives.find((a) => a.id === 'balanced');
+  const whyAlts = aF && aS && aB ? `<p class="why"><b>Why this matters.</b> Compared with Fastest, the Safest route costs only +${f1(aS.duration_min - aF.duration_min)} min and +${f0(aS.dist_m - aF.dist_m)} m,
+    but cuts time on caution terrain from ${f1(aF.caution_min)} to ${f1(aS.caution_min)} min and the steepest cell from ${f1(aF.max_slope_deg)}° to ${f1(aS.max_slope_deg)}°. A small detour buys a large cut in exposure.
+    The plan uses Balanced: ${f1(aB.caution_min)} caution min for +${f1(aB.duration_min - aF.duration_min)} min.</p>` : '';
   const drawAlts = () => {
-    $('#alts').innerHTML = altHTML();
+    $('#alts').innerHTML = altHTML() + whyAlts;
     document.querySelectorAll('[data-alt]').forEach((tr) => tr.onclick = () => {
       const id = tr.dataset.alt; sel2.has(id) ? sel2.delete(id) : sel2.add(id); drawAlternatives(sel2); drawAlts();
     });
@@ -601,6 +634,8 @@ function renderSchedule() {
     <h2>EVA timeline (your plan) ${B('modeled')}</h2>
     <div id="gantt"></div>
     <div class="legendrow"><span><span class="sw" style="background:#5a6573"></span>walk</span>${Object.values(CAT).slice(0, 4).map((c) => `<span><span class="sw" style="background:${c.col}"></span>${c.label}</span>`).join('')}</div>
+    <p class="why"><b>Why this matters.</b> Work at the stops is ${f0(ev.totals.work_min)} of the ${f0(ev.totals.duration_min)} planned minutes (${f0(100 * ev.totals.work_min / ev.totals.duration_min)} %); walking is ${f0(ev.totals.walk_min)}.
+      So the lever on this EVA is task time, not route length.</p>
     <p class="small muted">Buddy rule: EV1 and EV2 walk the same route and work at the same stop. Roles are this project's operational plan ${B('assumption')}. Work times ${B('assumption')}.</p>
     <table><tr><th>Block</th><th>start</th><th>end</th><th>EV1</th><th>EV2</th></tr>
     ${ev.rows.map((r) => `<tr><td>${r.kind === 'walk' ? `Walk to ${esc(nameOf(r.to))} <span class="muted">(${f2(r.dist_m / 1000)} km)</span>` : `<b>${esc(r.name)}</b>`}</td>
@@ -612,11 +647,15 @@ function renderSchedule() {
     <h2>Risk: Monte Carlo (your plan) ${B('modeled')}</h2>
     <div id="hist"></div>
     <p><b>${pct(mc.p_success)}</b> of ${f0(mc.runs)} runs get home on time with O2 above reserve. Median ${f0(mc.duration_min.p50)} min, P95 ${f0(mc.duration_min.p95)} min (limit ${A.limitMin}).</p>
+    <p class="why"><b>Why this matters.</b> On paper this plan has ${f0(A.limitMin - ev.totals.duration_min)} min to spare. In the simulation, 1 run in 20 still takes longer than ${f0(mc.duration_min.p95)} min.
+      A plan that only "fits the limit" is not enough; the rule asks for ${Math.round(100 * pv('schedule.robust_p_on_time'))} % of runs.</p>
     <p class="small muted">Each run draws a walking-speed factor (σ ${pv('montecarlo.speed_sigma')}), a metabolic factor (σ ${pv('montecarlo.metabolic_sigma')}) and a work-time factor per stop (σ ${pv('montecarlo.dwell_sigma')}), all log-normal ${B('assumption')}.
       Python reference for the recommended plan: ${pct(P.montecarlo.p_success, 2)} of ${f0(P.montecarlo.runs)} runs.</p>
     <h2>What drives the risk? (tornado, recommended plan) ${B('modeled')}</h2>
     <div id="tornado"></div>
     <div class="legendrow"><span><span class="sw" style="background:${Ch.C.sky}"></span>shorter EVA</span><span><span class="sw" style="background:${Ch.C.orange}"></span>longer EVA</span></div>
+    <p class="why"><b>Why this matters.</b> ${(() => { const r = P.montecarlo.tornado.rows, work = r.filter((x) => x.input.startsWith('Work time')).length, top = r[0];
+      return `The biggest single driver is ${esc(top.input.replace(/ \(.*\)/, '').replace('Work time: ', 'work time at '))} (${f0(top.swing_min)} min swing); ${work} of the ${r.length} inputs are task times. To cut risk, tighten or shorten tasks first; a shorter route helps less.`; })()}</p>
     <p class="small muted">Each input moved to its 10th and 90th percentile, all others at their median. Computed by the Python planner for the recommended plan.</p>`;
   Ch.gantt($('#gantt'), ev.rows, A.limitMin, colorOfRow);
   Ch.burnDown($('#burn'), ev.burn_down, A.limitMin);
@@ -677,6 +716,7 @@ function renderSafety() {
       <div class="kpi"><div class="v">${f1(s.walkback.min_o2_margin_pct_of_capacity)} %</div><div class="l">tightest O2 margin (of tank)</div></div>
       <div class="kpi"><div class="v">${f0(s.walkback.at_time_elapsed_min)} min</div><div class="l">into the EVA, ${f0(s.walkback.at_time_walk_home_min)} min from home</div></div>
     </div>
+    <p class="why"><b>Why this matters.</b> This is the point-of-no-return check. The tightest moment is ${f0(s.walkback.at_time_elapsed_min)} min into the EVA, ${f0(s.walkback.at_time_walk_home_min)} min from home${s.walkback.at_time_walk_home_min < s.sep.max_walk_home_min - 1 ? `, not at the farthest point (${f0(s.sep.max_walk_home_min)} min from home)` : ''}: late in the day the clock runs out before the distance does.</p>
     <button id="show-tight" type="button">Show the tightest point on the map</button>
     <h2>Solar storm (SEP) shelter rule ${B('assumption')}</h2>
     <p class="small">During a solar particle event alert the crew must reach the habitat within <b>${A.cur.shelterMin} min</b> (slider on the Plan tab). Farthest point of your route: <b>${f0(s.sep.max_walk_home_min)} min</b> from shelter.

@@ -161,3 +161,12 @@ blockquote { margin: 6px 0; padding: 4px 10px; border-left: 3px solid var(--oran
 
 .sw.line { height: 4px; vertical-align: 3px; border-radius: 0; background-image: repeating-linear-gradient(90deg, transparent 0 3px, #111 3px 5px); }
 .lyr-nogo { image-rendering: pixelated; }
+
+/* ---------- "why this matters" notes and the optimization table */
+.why { border-left: 3px solid var(--orange); padding: 5px 10px; background: #221d12; border-radius: 0 6px 6px 0; font-size: 13px; line-height: 1.45; margin: 8px 0; }
+.why b { color: #ffd98a; font-weight: 600; }
+details.formulation { margin: 8px 0 4px; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; background: var(--panel2); }
+details.formulation summary { cursor: pointer; font-weight: 600; }
+details.formulation table { margin-top: 6px; }
+details.formulation td { text-align: left; }
+details.formulation td:first-child { color: var(--muted); white-space: nowrap; padding-right: 10px; width: 1%; }
