@@ -13,7 +13,7 @@
 ### Phase 4 exit checks (evidence)
 | Exit check | Result | Evidence |
 |---|---|---|
-| Live URL works, fresh browser profile, no login | **PASS** | `scripts/screenshot.py --url https://sonctran.github.io/nasa/` in a new Chromium context: all 15 panels clicked, **0 console errors, 0 page errors, 0 failed requests, 0 HTTP errors**. Route on the map at 0.85 s, plan ready 1.66 s (before the fixes; re-run after the final deploy is below). |
+| Live URL works, fresh browser profile, no login | **PASS** | `scripts/screenshot.py --url https://sonctran.github.io/nasa/` in a new Chromium context: all 15 panels clicked, **0 console errors, 0 page errors, 0 failed requests, 0 HTTP errors**. Before the fixes: route 0.85 s, ready 1.66 s. **After the final deploy (commit d4bf8d7): route on the map 0.75 s, plan ready 1.55 s, add-a-stop re-plan 231 ms, 0 errors.** |
 | Repo URL works, public | **PASS** | GitHub search API: `sonctran/nasa`, `visibility: public`. |
 | Reviewer findings fixed or listed | **PASS** | Table below. |
 | Tests | **PASS** | pytest **166 passed**. Local click-through after fixes: 0 errors, route 0.17 s, ready 0.98 s, tablet overflow 0 px. Site 11 MB. |
