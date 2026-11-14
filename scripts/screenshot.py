@@ -2,11 +2,14 @@
 screenshots and record every console error, failed request and timing.
 
 Run:  python scripts/screenshot.py            (Windows: .\\.venv\\Scripts\\python.exe scripts\\screenshot.py)
+      python scripts/screenshot.py --url https://sonctran.github.io/nasa/ --out docs/screenshots/live
+      (tests the deployed site instead of a local server; each run uses a fresh browser profile)
 Needs: pip install playwright, then once:  python -m playwright install chromium
 Output: docs/screenshots/*.jpg and docs/screenshots/report.json. Exit code 1 if any console error.
 """
 from __future__ import annotations
 
+import argparse
 import functools
 import http.server
 import json
@@ -36,8 +39,16 @@ def serve() -> tuple[http.server.ThreadingHTTPServer, str]:
 
 
 def main() -> int:
-    OUT.mkdir(parents=True, exist_ok=True)
-    httpd, url = serve()
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--url", help="test this URL (e.g. the live site) instead of a local server")
+    ap.add_argument("--out", type=Path, default=OUT, help="folder for screenshots + report.json")
+    args = ap.parse_args()
+    out = args.out.resolve()
+    out.mkdir(parents=True, exist_ok=True)
+    if args.url:
+        httpd, url = None, args.url if args.url.endswith("/") else args.url + "/"
+    else:
+        httpd, url = serve()
     rep: dict = {"url": url, "console_errors": [], "console_warnings": [], "page_errors": [], "failed_requests": [],
                  "http_errors": [], "shots": [], "timing_ms": {}, "dom": {}}
     with sync_playwright() as p:
@@ -57,7 +68,7 @@ def main() -> int:
         page.on("response", lambda r: r.status >= 400 and rep["http_errors"].append(f"{r.status} {r.url}"))
 
         def shot(name: str, target=None):
-            f = OUT / f"{name}.jpg"
+            f = out / f"{name}.jpg"
             (target or page).screenshot(path=str(f), type="jpeg", quality=72)
             rep["shots"].append(f.name)
 
@@ -185,15 +196,16 @@ def main() -> int:
         tp.goto(url)
         tp.wait_for_selector("body[data-ready='1']", timeout=30000)
         tp.wait_for_timeout(600)
-        tp.screenshot(path=str(OUT / "15_tablet.jpg"), type="jpeg", quality=72, full_page=False)
+        tp.screenshot(path=str(out / "15_tablet.jpg"), type="jpeg", quality=72, full_page=False)
         rep["shots"].append("15_tablet.jpg")
         rep["dom"]["tablet_horizontal_overflow_px"] = tp.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth")
         browser.close()
-    httpd.shutdown()
-    (OUT / "report.json").write_text(json.dumps(rep, indent=1), encoding="utf-8")
+    if httpd:
+        httpd.shutdown()
+    (out / "report.json").write_text(json.dumps(rep, indent=1), encoding="utf-8")
     bad = rep["console_errors"] + rep["page_errors"] + rep["failed_requests"] + rep["http_errors"]
     print(json.dumps({k: rep[k] for k in ("timing_ms", "console_errors", "page_errors", "failed_requests", "http_errors")}, indent=1))
-    print(f"{len(rep['shots'])} screenshots in {OUT.relative_to(ROOT)}; {len(bad)} errors")
+    print(f"{len(rep['shots'])} screenshots in {out}; {len(bad)} errors")
     return 1 if bad else 0
 
 
