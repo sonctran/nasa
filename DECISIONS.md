@@ -75,3 +75,22 @@ One line per decision, with its reason. "Son" = owner decision. "Tech" = technic
 | T50 | **Lunar/Apollo-derived values get a "proxy" badge** (20° slope limit, work rates, walking model). | Matches the project's own label rule: proxy = measured somewhere else (Gale, near-Earth, the Moon). |
 | T51 | **Layers panel starts collapsed at every screen width; a "Try:" hint sits under the pitch; the map legend explains stop markers.** | First-10-seconds review: the open panel covered a third of the map and judges had no first action. |
 | T52 | **Credit line uses "Fergason et al. 2020"** (8 originators in the USGS metadata). | The old "Fergason, Galuszka & Hare" listed 3 of 8 authors. |
+
+## Improvement pass before judging (Sat 2026-11-14)
+
+No planning math, parameter or data changed in this pass. `plan.json` is byte-for-byte the Phase 4 file, so **no result number changed**. Two shown values did change, for the reasons in T54 and T59.
+
+| # | Decision | Reason |
+|---|---|---|
+| T53 | **Keep the current layout, theme, fonts and tab names. Improve in small, separate commits.** | The owner reverted the earlier full redesign (59f801d). Each change here can be undone on its own with `git revert`. |
+| T54 | **HUD: the walk-home time at the moment of an event is rescaled by old pace / new pace.** | Bug. After "Slow crew" the HUD kept showing the walk-home time at the old pace until the next route point (34 min shown where 49 min is right, in the click-through example). This is the only safety value on screen whose number changed; it is a HUD readout after an event, not a plan result. |
+| T55 | **The no-go map layer follows the slope slider:** the 2 m picture file at the default 20°, the planner's own 10 m cells at any other value. | The map said "no-go: slope > 15°" while drawing the 20° layer. The legend now says which one is drawn. |
+| T56 | **Stretches that break the SEP shelter rule are drawn red and dashed.** | The Safety tab already said "red on the map"; the line was purple, which also means "transported boulders". Dashes add a cue that does not depend on colour. |
+| T57 | **Stop markers that overlap on screen are pushed apart; every stop and the habitat carry a name label.** | Skinner Ridge sat hidden behind Wildcat Ridge (24 m apart). Names let a first-time visitor read the route without opening a tab. Positions are unchanged: only the badge is nudged, by screen pixels. |
+| T58 | **A science-against-risk chart of the four candidate plans, "why this matters" notes, and the optimization in plain words, all filled from `plan.json`.** | The main IE result (more science costs margin; the 95 % bar picks 26 points) was hidden in a drop-down. Nothing is typed in by hand, so the text cannot drift from the results. |
+| T59 | **CP-SAT solve time is written "3-17 ms" (rounded), was "3-16 ms" (cut off).** | The slowest candidate took 16.55 ms. The app rounds it to 17; the docs now do too. Rounding only. |
+| T60 | **HUD playback starts when the HUD is opened from the header.** | One click shows the walk moving. The Safety tab's storm replay is unchanged. |
+| T61 | **The deck is built by `scripts/build_deck.py`** (python-pptx 1.0.2, pinned) from `plan.json`, the test count and `docs/screenshots/`. PDF by LibreOffice; a copy at `site/demo_slides.pdf` gives it a public link. | "Link to Project Demo" needs a public URL. Building it from the data keeps slide numbers in step with the app. |
+| T62 | **Submission files were drafted in this pass, before the owner called Phase 5.** | The review brief asked for the submission files to match the final build, and `submission/` was empty. They are marked DRAFT: the owner still approves the text field by field (SPEC Phase 5). |
+| T63 | **`tests/test_submission.py` checks that the README, project page, resume bullets and deck quote the numbers in `plan.json`, that AI use is disclosed, that the deck has at most 7 slides, and that the stated number of tests is the real one.** | A re-run of the planner, or an edit to the text, cannot leave a stale number behind. |
+| T64 | **METHODS section 6 now states that a slower crew is assumed to use the same walking energy per metre.** | The assumption was in the code comment only. No number changes. |
