@@ -561,13 +561,14 @@ function renderStaticPanels() {
   drawStops();
   // alternatives table
   const sel2 = new Set();
-  const altHTML = () => `<table><tr><th>Option</th><th>km</th><th>min</th><th>kcal walk</th><th>max slope</th><th>caution min</th><th>min reserve</th><th>P(home on time, O2 OK)</th></tr>
-    ${P.alternatives.map((a) => `<tr class="click ${sel2.has(a.id) ? 'sel' : ''}" data-alt="${a.id}"><td><span class="sw" style="background:${ROUTE_COL[a.id]}"></span>${esc(a.name)}</td>
+  const altName = { shortest: 'Shortest (naive)', balanced: 'Balanced (plan)' };
+  const altHTML = () => `<table class="alts"><tr><th>Option</th><th>km</th><th>EVA min</th><th>kcal</th><th>max slope</th><th>caution min</th><th>reserve</th><th>home OK</th></tr>
+    ${P.alternatives.map((a) => `<tr class="click ${sel2.has(a.id) ? 'sel' : ''}" data-alt="${a.id}"><td><span class="sw" style="background:${ROUTE_COL[a.id]}"></span>${esc(altName[a.id] || a.name)}</td>
       <td>${f2(a.dist_m / 1000)}</td><td>${f1(a.duration_min)}</td><td>${f0(a.walk_energy_kcal)}</td><td>${f1(a.max_slope_deg)}°</td>
-      <td>${f1(a.caution_min)}</td><td>${f0(a.min_walkback_margin_min)} min / ${f0(a.min_o2_margin_pct)} % O2</td><td>${pct(a.p_success ?? a.p_on_time)}</td></tr>`).join('')}</table>
-    <p class="small muted">min = whole EVA (walking + ${f0(P.plan.totals.work_min)} min of work). caution min = minutes on cells with any hazard (slope over 10° or roughness over 0.05 m).
-      min reserve = tightest walk-back margin along the route, in time and in % of the O2 tank above the reserve. Lowest-energy gives the same route as Fastest: with constant-power pacing, walking energy = 352 W × time.
-      P = share of ${f0(P.montecarlo.runs)} Python Monte Carlo runs home within ${A.limitMin} min with O2 above reserve (same measure as the headline).</p>`;
+      <td>${f1(a.caution_min)}</td><td>${f0(a.min_walkback_margin_min)} min<br><span class="muted">${f0(a.min_o2_margin_pct)} % O2</span></td><td>${pct(a.p_success ?? a.p_on_time)}</td></tr>`).join('')}</table>
+    <p class="small muted">EVA min = whole EVA (walking + ${f0(P.plan.totals.work_min)} min of work). kcal = walking energy per person. caution min = minutes on cells with any hazard (slope over 10° or roughness over 0.05 m).
+      reserve = tightest walk-back margin along the route, in time and in % of the O2 tank above the reserve. Lowest-energy gives the same route as Fastest: with constant-power pacing, walking energy = 352 W × time.
+      home OK = share of ${f0(P.montecarlo.runs)} Python Monte Carlo runs home within ${A.limitMin} min with O2 above reserve (same measure as the headline).</p>`;
   const aF = P.alternatives.find((a) => a.id === 'fastest'), aS = P.alternatives.find((a) => a.id === 'safest'), aB = P.alternatives.find((a) => a.id === 'balanced');
   const whyAlts = aF && aS && aB ? `<p class="why"><b>Why this matters.</b> Compared with Fastest, the Safest route costs only +${f1(aS.duration_min - aF.duration_min)} min and +${f0(aS.dist_m - aF.dist_m)} m,
     but cuts time on caution terrain from ${f1(aF.caution_min)} to ${f1(aS.caution_min)} min and the steepest cell from ${f1(aF.max_slope_deg)}° to ${f1(aS.max_slope_deg)}°. A small detour buys a large cut in exposure.
@@ -596,7 +597,7 @@ function renderEditor() {
       const s = siteById(id);
       const c = s ? CAT[s.kind === 'depot' ? 'depot' : s.category].col : Ch.C.yellow;
       const extra = s ? `${s.value} pts · ${s.dwell_min} min` : 'pass through';
-      return `<li><span class="n" style="background:${c}">${i + 1}</span><span class="nm">${esc(nameOf(id))} <span class="small muted">${extra}</span></span>
+      return `<li><span class="n" style="background:${c}">${i + 1}</span><span class="nm" title="${esc(nameOf(id))}">${esc(shortName(nameOf(id)))} <span class="small muted">${extra}</span></span>
         <button data-up="${i}" title="Move earlier" aria-label="Move ${esc(nameOf(id))} earlier">↑</button><button data-dn="${i}" title="Move later" aria-label="Move later">↓</button><button data-rm="${i}" title="Remove" aria-label="Remove">✕</button></li>`;
     }).join('') + `<li><span class="n" style="background:${Ch.C.sky}">H</span><span class="nm">Habitat (finish)</span></li>`;
   ul.querySelectorAll('[data-up]').forEach((b) => b.onclick = () => { const i = +b.dataset.up; if (i > 0) { const o = A.cur.order; [o[i - 1], o[i]] = [o[i], o[i - 1]]; after(); } });
@@ -689,7 +690,13 @@ function renderStops() {
       const tubes = s.kind === 'depot' ? `<p class="small">${A.vectors.depot_tubes.points.length} tubes: ${A.vectors.depot_tubes.points.map((t) => esc(t.name)).join(', ')} (dropped sols ${A.vectors.depot_tubes.points[0].drop_sol}-${A.vectors.depot_tubes.points.at(-1).drop_sol}). ${esc(A.vectors.depot_tubes.note)}</p>` : '';
       return `<div class="card" id="card-${s.id}">
         <h3><span class="sw" style="background:${c.col}"></span>${esc(s.name)} ${pos >= 0 ? `<span class="badge modeled">stop ${pos + 1} in your plan</span>` : '<span class="badge derived">not in plan</span>'}</h3>
-        <div class="small">${esc(c.label)} · <b>${s.value} pts</b> ${B('owner-set')} · work ${s.dwell_min} min ${B('assumption')} · <span title="Apollo lunar EVA metabolic rate for this kind of task">${s.work_w} W work rate</span> ${B('proxy')} · walk home ${f0(s.walk_home_min)} min ${B('modeled')}${s.sep_ok ? '' : ' · <b style="color:#ff6b5b">outside the SEP shelter limit</b>'}</div>
+        <div class="small muted">${esc(c.label)}</div>
+        <div class="facts">
+          <div><span>Science value</span><b>${s.kind === 'depot' ? 'required task' : s.value + ' pts'}</b> ${B('owner-set')}</div>
+          <div><span>Work time</span><b>${s.dwell_min} min</b> ${B('assumption')}</div>
+          <div title="Apollo lunar EVA metabolic rate for this kind of task"><span>Work rate</span><b>${s.work_w} W</b> ${B('proxy')}</div>
+          <div><span>Walk home</span><b>${f0(s.walk_home_min)} min</b> ${B('modeled')}</div>
+        </div>${s.sep_ok ? '' : '<p class="warn">Outside the SEP shelter limit: the optimizer does not offer this stop.</p>'}
         ${s.task ? `<p><b>Task:</b> ${esc(s.task)}</p>` : ''}
         ${s.why_category ? `<p><b>Science goal:</b> ${esc(s.why_category)}</p>` : ''}
         ${s.quote ? `<blockquote>"${esc(s.quote)}"</blockquote><div class="credit">${esc(s.source)}${s.samples ? ' · samples: ' + esc(s.samples) : ''}</div>` : `<div class="credit">${esc(s.source || '')}</div>`}

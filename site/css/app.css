@@ -184,3 +184,18 @@ details.formulation td:first-child { color: var(--muted); white-space: nowrap; p
 .mctl.collapsed { display: flex; flex-direction: row-reverse; align-items: center; gap: 8px; }
 .mctl.collapsed h4 { margin: 0; }
 .mctl.collapsed .toggle { float: none; margin: 0; }
+
+/* ---------- readability pass (same theme) */
+.tabpane h2 { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--line); }
+.tabpane h2:first-child, .tabpane .gobanner + ul + h2 { margin-top: 4px; }
+.tabpane h2:first-child { padding-top: 0; border-top: 0; }
+table, .kpi .v, .slider output { font-variant-numeric: tabular-nums; }
+table.alts { font-size: 12px; }
+table.alts th { font-weight: 600; line-height: 1.25; vertical-align: bottom; }
+table.alts td:first-child { white-space: nowrap; }
+table.alts td { padding: 6px 4px; white-space: nowrap; }
+.stoplist li .nm { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; margin: 6px 0 8px; font-size: 12.5px; }
+.facts > div > span:first-child { display: block; color: var(--muted); font-size: 11.5px; }
+.facts b { font-size: 14px; }
+.card h3 { margin-top: 2px; }
