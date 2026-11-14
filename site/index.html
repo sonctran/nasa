@@ -10,33 +10,24 @@
 <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-<div class="app">
-<header class="bar">
-  <div class="wordmark">Marswalk Ops<small>EVA planner, Jezero Crater</small></div>
-  <p class="mission"><strong>Plans a 6-hour walk for two astronauts on Mars</strong>: which science sites to visit, in what order, along which route, and whether they get home safely. The map, rules and risk all update live when you change the plan.</p>
+<header>
+  <div class="brand">Marswalk <span>Ops</span></div>
+  <div class="pitch"><b>Plans a safe 6-hour, two-astronaut Marswalk in Jezero Crater:</b> it picks the science stops, finds the route over real NASA terrain, schedules the work and measures the risk.</div>
   <div class="actions">
-    <button id="btn-hud" class="primary" title="Full-screen helmet view that plays the walk back">Play the EVA in helmet view</button>
-    <a href="methods.html"><button type="button">How it works</button></a>
+    <span id="gochip" class="gochip" title="Go/No-Go for the plan on the map">…</span>
+    <button id="btn-hud" class="primary" title="Helmet visor view with playback">HUD mode</button>
+    <a href="methods.html"><button>Methods &amp; data</button></a>
   </div>
 </header>
-<section class="poll" id="poll" aria-label="Go or no-go for the plan on the map">
-  <div class="verdict wait" id="verdict"><span class="word">…</span><span class="why">checking the 9 safety rules</span></div>
-</section>
-<main class="work">
-  <div class="mapcol">
-    <div id="map" aria-label="Map of the study area in Jezero Crater"></div>
-    <section class="strip" aria-label="EVA timeline">
-      <div class="head"><strong>EVA timeline</strong><span id="strip-sub">hours after leaving the habitat</span></div>
-      <div id="strip-svg"></div>
-    </section>
-  </div>
+<main>
+  <div id="map" aria-label="Map of the study area in Jezero Crater"></div>
   <aside id="panel">
     <nav class="tabs" role="tablist">
       <button role="tab" data-tab="plan" aria-selected="true">Plan</button>
-      <button role="tab" data-tab="schedule">Timeline</button>
+      <button role="tab" data-tab="schedule">Schedule</button>
       <button role="tab" data-tab="stops">Stops</button>
       <button role="tab" data-tab="safety">Safety</button>
-      <button role="tab" data-tab="checks">Validation</button>
+      <button role="tab" data-tab="checks">Checks</button>
     </nav>
     <section class="tabpane" id="tab-plan" role="tabpanel"></section>
     <section class="tabpane" id="tab-schedule" role="tabpanel" hidden></section>
@@ -45,13 +36,12 @@
     <section class="tabpane" id="tab-checks" role="tabpanel" hidden></section>
   </aside>
 </main>
-</div>
 
 <div id="hud" hidden aria-label="HUD helmet visor view">
   <div class="top">
-    <strong>Helmet view, EV1</strong>
+    <strong>HUD · EV1 visor</strong>
     <span class="clock" id="hud-clock">T+0:00</span>
-    <span class="tag tag-modeled">modeled playback</span>
+    <span class="badge modeled">modeled playback</span>
     <span style="flex:1"></span>
     <button id="hud-ev-sep" class="danger" title="Replay a solar particle event alert: crew must reach shelter">Solar storm alert</button>
     <button id="hud-ev-slow" title="Crew walks at 70% pace, tasks take 30% longer (assumption)">Slow crew</button>
@@ -61,10 +51,10 @@
   </div>
   <div class="stage" id="hud-stage">
     <canvas id="hud-canvas"></canvas>
-    <div class="ro tl"><span class="lab">Next target</span><span class="mid" id="hud-next">-</span><span class="big" id="hud-dist">-</span><span class="mid" id="hud-brg">-</span></div>
+    <div class="ro tl"><span class="lab">Next</span><span class="mid" id="hud-next">-</span><span class="big" id="hud-dist">-</span><span class="mid" id="hud-brg">-</span></div>
     <div class="ro tr"><span class="lab">EVA time left</span><span class="big" id="hud-left">-</span><span class="lab">Walk home now</span><span class="mid" id="hud-home">-</span></div>
     <div class="ro bl"><span class="lab">O2 above reserve</span><span class="big" id="hud-o2">-</span><span class="lab">Battery</span><span class="mid" id="hud-bat">-</span></div>
-    <div class="ro br"><span class="lab">Ground here</span><span class="mid" id="hud-terrain">-</span><span class="lab">Task</span><span class="mid" id="hud-task">-</span></div>
+    <div class="ro br"><span class="lab">Terrain here</span><span class="mid" id="hud-terrain">-</span><span class="lab">Task</span><span class="mid" id="hud-task">-</span></div>
     <div class="alert" id="hud-alert" hidden></div>
     <div class="replan" id="hud-replan" hidden></div>
   </div>

@@ -21,29 +21,6 @@ What is in the app (SPEC §7):
 - **HUD mode:** full-screen visor view: next target, distance, bearing, EVA time left, walk-home time, O2 above reserve, battery, terrain/slope caution, task; play/pause/speed/scrub; events **Solar storm alert, Slow crew, Suit O2 fault** → live re-plan.
 - **Methods page:** problem, labels, AI use, limitations, future work, and METHODS / ASSUMPTIONS / DATA_SOURCES rendered from the repo files.
 
-### Phase 3 UI/UX redesign (Fri 2026-11-13, ~1 h 15 min; no change to math, data or results)
-Asked by Son: "look like a real mission-control tool; a judge with no context understands it in 10 seconds; readable, colour-blind safe, works on a tablet; keep every unit and label."
-
-What changed (`site/index.html`, `css/app.css`, `js/app.js`, `js/charts.js`, `js/hud.js`, `methods.html`; DECISIONS T48-T51):
-- **GO/NO-GO poll board** under the header: a big verdict plus 9 stations, one per safety rule, each with a ✓/✕ glyph (shape, not only colour), the value with its unit, its limit or context, and its label. Click any station to open the Safety tab. Stations that change after an edit flash once (turned off when the user's system asks for reduced motion).
-- **EVA timeline strip** under the map: walk bars and numbered work blocks (same numbers as the map), the planned return, the P95 return from the live Monte Carlo, and the 6 h limit.
-- **Plan tab opens with a plain-English summary and a step-by-step timetable** (time, what happens, detail), like an EVA cuff checklist, instead of a grid of number cards. The optimizer's pick is shown as a reference line.
-- **Map:** stop names as permanent labels; "Habitat and shelter" label; layers panel collapsed by default; map key folds away (collapsed on tablets); cursor read-out hidden on touch screens; plain-language map key.
-- **Type and colour:** Barlow + Barlow Condensed (vendored, OFL); slate console base; Okabe-Ito colours used only for meaning. Labels now also differ by line style: dashed = assumption, dotted with "≈" = proxy. Each label has a plain-words tooltip. Sentence case, no all-caps headings.
-- **Copy:** header says what the tool does in one sentence; buttons say what they do ("Play the EVA in helmet view", "How it works"); tabs renamed Timeline and Validation.
-
-Evidence:
-- **Planning code and data unchanged:** `git diff` is empty for `site/js/engine.js`, `site/js/worker.js`, `planner/`, `config/`, `pipeline/`, `site/assets/`, `tests/`. The 9-rule `checklist()` function in `app.js` is byte-identical to the previous commit. pytest **166 passed**.
-- **Labels kept:** a Playwright count of label tags per panel, old build vs new build. Inside every tab: identical (Plan 9, Timeline 9, Stops 43, Safety 7, Validation 2). Outside the tabs: modeled 3 → 11, assumption 2 → 4, owner-set 0 → 1 (new poll board and strip); real 9 and proxy 2 unchanged.
-- **Console:** `scripts/screenshot.py` → 0 console errors, 0 page errors, 0 failed requests, 0 HTTP errors (desktop 1440×900 and tablet 820×1180). Tablet: no horizontal scrolling.
-- **Speed:** route on screen 0.20-0.34 s, live plan ready 1.0-1.1 s (several runs; was 0.19 s / 1.0 s).
-- **Screenshots:** after = `docs/screenshots/*.jpg`; before/after side by side = `docs/screenshots/before_after/` (first screen, timeline, safety, HUD re-plan, tablet).
-
-Known issues after the redesign:
-1. Wildcat Ridge and Skinner Ridge markers still overlap at the default zoom (24 m apart); their labels sit on opposite sides.
-2. Fonts cover the Latin character set only; arrows (→, ↑, ↓) fall back to the system font. They render, but in a slightly different style.
-3. Firefox is still untested (Phase 4).
-
 ### Phase 3 exit checks (evidence)
 | Exit check | Result | Evidence |
 |---|---|---|

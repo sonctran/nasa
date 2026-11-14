@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Marswalk Ops methods</title>
+<title>Marswalk Ops · Methods</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23e69f00'/%3E%3Cpath d='M3 11 L7 5 L9 8 L10 7 L13 11Z' fill='%23111'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="css/app.css">
 <style>html,body{height:auto}</style>
 </head>
 <body>
-<header class="bar">
-  <div class="wordmark">Marswalk Ops<small>How it works</small></div>
-  <p class="mission"><strong>Methods, assumptions and data.</strong> How the plan is made, and which numbers are measured, modeled or assumed.</p>
-  <div class="actions"><a href="index.html"><button class="primary" type="button">Back to the planner</button></a></div>
+<header>
+  <div class="brand">Marswalk <span>Ops</span></div>
+  <div class="pitch"><b>About, methods and data.</b> How the plan is made, what is real, what is modeled and what is assumed.</div>
+  <div class="actions"><a href="index.html"><button class="primary">← Back to the planner</button></a></div>
 </header>
 <div class="doc">
   <h1>About Marswalk Ops</h1>
@@ -20,15 +20,13 @@
     Every Marswalk (EVA) needs answers to four questions: where is it safe to walk, which way should we go, which science stops fit, and how likely are we to get home on time if things go slower than planned?</p>
   <p><b>What this tool does.</b> It plans a 6-hour, two-astronaut Marswalk in Jezero Crater, from a habitat on the crater floor to the sample tubes Perseverance left at the Three Forks depot and to real delta-front science sites, and back.
     It treats the walk as an operations problem: a cost model of human walking (time, energy, hazard), an exact route search (A*), an exact stop-selection and ordering model (orienteering problem, OR-Tools CP-SAT), safety rules checked at every 10 m of the route, and a Monte Carlo risk model.</p>
-  <p><b>Labels used everywhere in the app.</b></p>
-  <ul>
-    <li><span class="badge real">real</span> measured data</li>
-    <li><span class="badge derived">derived</span> computed from real data by a stated method</li>
-    <li><span class="badge modeled">modeled</span> output of our model</li>
-    <li><span class="badge assumption">assumption</span> a value we chose without a verified source (dashed outline)</li>
-    <li><span class="badge proxy">proxy</span> data from somewhere else (Gale crater, the Moon, near-Earth space) standing in for Jezero (dotted outline)</li>
-    <li><span class="badge owner">owner-set</span> a mission-design choice</li>
-  </ul>
+  <p><b>Labels used everywhere in the app.</b>
+    <span class="badge real">real</span> measured data ·
+    <span class="badge derived">derived</span> computed from real data by a stated method ·
+    <span class="badge modeled">modeled</span> output of our model ·
+    <span class="badge assumption">assumption</span> a value we chose without a verified source ·
+    <span class="badge proxy">proxy</span> data from somewhere else (Gale crater, the Moon, near-Earth space) standing in for Jezero ·
+    <span class="badge owner">owner-set</span> a mission-design choice.</p>
 
   <h2 id="ai">Use of AI</h2>
   <ul>
