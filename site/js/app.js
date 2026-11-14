@@ -229,15 +229,16 @@ function reorderLayers() {
 
 function legendControl() {
   const Ctl = L.Control.extend({
-    onAdd() { const d = L.DomUtil.create('div', 'mctl'); d.id = 'legend'; L.DomEvent.disableClickPropagation(d); return d; },
+    onAdd() { const d = L.DomUtil.create('div', 'mctl'); d.id = 'legend'; L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d); return d; },
   });
+  A.legendFolded = window.innerWidth < 1100;      // on a tablet the legend would cover a third of the map
   new Ctl({ position: 'bottomleft' }).addTo(A.map);
   updateLegend();
 }
 function updateLegend() {
   const d = $('#legend');
   if (!d) return;
-  let html = '<h4>Legend</h4>';
+  let html = `<button class="toggle" type="button" aria-expanded="${!A.legendFolded}" aria-label="${A.legendFolded ? 'Show' : 'Hide'} the legend">${A.legendFolded ? '+' : '–'}</button><h4>Legend</h4><div class="body">`;
   for (const id of ['elevation', 'slope', 'roughness']) {
     const r = A.raster[id];
     if (!r.on || !r.lyr.legend) continue;
@@ -254,8 +255,10 @@ function updateLegend() {
     <div><span class="sw" style="background:${ROUTE}"></span>Your plan route ${B('modeled')}</div>
     <div><span class="sw" style="background:#fff;border-radius:50%"></span>Tightest walk-back point</div>
     <div><span class="sw line" style="background:${SEPCOL}"></span>Too far from shelter (SEP rule)</div>
-    <div><span class="sw" style="background:#fff"></span>Perseverance traverse ${B('real')}</div>`;
+    <div><span class="sw" style="background:#fff"></span>Perseverance traverse ${B('real')}</div></div>`;
   d.innerHTML = html;
+  d.classList.toggle('collapsed', !!A.legendFolded);
+  d.querySelector('.toggle').onclick = () => { A.legendFolded = !A.legendFolded; updateLegend(); };
 }
 
 function readoutControl() {
@@ -290,15 +293,19 @@ function declutter(sites) {
   }
   return Object.fromEntries(q.map((o) => [o.id, [o.dx, o.dy]]));
 }
+const shortName = (n) => n.replace(/ \(.*\)/, '').replace('sample depot', 'depot');
 function stopIcon(s, num, off = [0, 0]) {
   const c = CAT[s.kind === 'depot' ? 'depot' : s.category]?.col || '#fff';
-  return L.divIcon({ className: '', html: `<div class="stopicon" style="background:${c};transform:translate(${off[0].toFixed(1)}px,${off[1].toFixed(1)}px)">${num ?? '·'}</div>`, iconSize: [24, 24], iconAnchor: [12, 12] });
+  const tr = `transform:translate(${off[0].toFixed(1)}px,${off[1].toFixed(1)}px)`;
+  // name label: on the side the badge was pushed to, so two close stops read left and right
+  const lab = `<span class="maplabel ${off[0] < -0.5 ? 'left' : ''} ${num == null ? 'off' : ''}" style="${tr}">${esc(shortName(s.name))}</span>`;
+  return L.divIcon({ className: '', html: `<div class="stopicon" style="background:${c};${tr}">${num ?? '·'}</div>${lab}`, iconSize: [24, 24], iconAnchor: [12, 12] });
 }
 function drawStops() {
   const g = A.vec.stops.g;
   g.clearLayers();
   const hab = A.plan.sites[0];
-  L.marker(LL([hab.x, hab.y]), { icon: L.divIcon({ className: '', html: '<div class="habicon">H</div>', iconSize: [26, 26], iconAnchor: [13, 13] }) })
+  L.marker(LL([hab.x, hab.y]), { icon: L.divIcon({ className: '', html: '<div class="habicon">H</div><span class="maplabel hab">Habitat</span>', iconSize: [26, 26], iconAnchor: [13, 13] }) })
     .bindTooltip('Habitat (start, finish and the only shelter). Site picked by a stated rule: the flattest 110 m pad on the crater floor about 1 km east of the depot (assumption).').addTo(g);
   const off = declutter(A.plan.sites.slice(1));
   A.plan.sites.slice(1).forEach((s) => {
@@ -459,7 +466,8 @@ function renderStaticPanels() {
   const names = rp.order.map((id) => siteById(id).name.replace(/ \(.*\)/, ''));
   $('#tab-plan').innerHTML = `
     <h2>Recommended plan ${B('modeled')}</h2>
-    <p>${names.map(esc).join(' → ')}</p>
+    <p class="lead">Two astronauts visit ${rp.order.filter((id) => siteById(id).kind === 'stop').length} science sites, collect the ${A.vectors.depot_tubes.points.length} cached sample tubes and are home in ${hm(rp.totals.duration_min)}, inside the ${pv('mission.eva_time_limit')} h limit.</p>
+    <p class="routeline">${names.map(esc).join(' → ')}</p>
     <div class="kpis">
       <div class="kpi"><div class="v">${rp.value} pts</div><div class="l">science value ${B('owner-set')}</div></div>
       <div class="kpi"><div class="v">${f0(rp.totals.duration_min)} min</div><div class="l">of ${A.limitMin} min limit</div></div>
