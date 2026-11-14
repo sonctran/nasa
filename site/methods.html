@@ -28,6 +28,10 @@
     <span class="badge proxy">proxy</span> data from somewhere else (Gale crater, the Moon, near-Earth space) standing in for Jezero ·
     <span class="badge owner">owner-set</span> a mission-design choice.</p>
 
+  <h2 id="glance">Method at a glance</h2>
+  <p class="small muted">Six questions an EVA planner has to answer, the method used for each, and the result for the recommended plan. Every result is <span class="badge modeled">modeled</span> and is read from the planner's output file, the same one the app uses.</p>
+  <table id="glance-t" class="glance"><tr><th>Question</th><th>Method</th><th>Result for the recommended plan</th></tr></table>
+
   <h2 id="ai">Use of AI</h2>
   <ul>
     <li><b>Ideation:</b> Claude (Anthropic) suggested concept upgrades; Son Tran chose which to keep (live re-plan and robust plan).</li>
@@ -111,6 +115,36 @@ async function show(name) {
   const r = await fetch('assets/docs/' + name);
   document.getElementById('md').innerHTML = r.ok ? md(await r.text()) : '<p>Could not load ' + name + '</p>';
 }
+// "Method at a glance": filled from the planner's own output so the numbers cannot drift from the app.
+async function glance() {
+  const [P, G] = await Promise.all(['plan.json', 'cost_grid.json'].map((f) => fetch('assets/data/' + f).then((r) => r.json())));
+  const t = P.plan.totals, mc = P.montecarlo, sf = P.safety, U = P.params_used, V = P.validation;
+  const f0 = (v) => Math.round(v).toLocaleString('en-US'), f1 = (v) => v.toFixed(1), f2 = (v) => v.toFixed(2);
+  const drive = V.rover_drives.find((d) => /floor/i.test(d.name));
+  const rows = [
+    ['Where is it safe to walk?',
+     `Slope and roughness from the 1 m HiRISE elevation model, on a 10 m grid. No-go above ${U['terrain.slope_nogo_deg']}° (a NASA lunar suit limit, used as a proxy).`,
+     `${f1(100 * G.nogo_fraction_at_defaults)} % of the area is no-go. The route's steepest cell is ${f1(t.max_slope_deg)}°.`],
+    ['Which way should we walk?',
+     'A* route search in 16 directions. Cost of a step = time + energy + hazard, from NASA suit numbers and a measured uphill muscle efficiency.',
+     `${f2(t.dist_m / 1000)} km, ${f0(t.walk_min)} min of walking, ${f1(t.caution_min)} min on caution terrain.`],
+    ['Which stops, in which order?',
+     'A prize-collecting orienteering problem, solved exactly with Google OR-Tools CP-SAT.',
+     `${P.plan.value} science points from ${P.plan.order.length - 3} science sites plus the sample depot. Proven ${P.robust_plan.solver_status.toLowerCase()} in ${f0(P.robust_plan.solve_ms)} ms.`],
+    ['How likely are we to get home on time?',
+     `A ${f0(mc.runs)}-run Monte Carlo on walking speed, work time and metabolic rate. The plan must succeed in at least ${Math.round(100 * U['schedule.robust_p_on_time'])} % of runs.`,
+     `${f1(100 * mc.p_success)} % of runs. Planned ${f0(t.duration_min)} min, 95th percentile ${f0(mc.duration_min.p95)} min, limit ${f0(60 * U['mission.eva_time_limit'])} min.`],
+    ['What if something goes wrong on the way?',
+     'Walk-back rule checked at every 10 m (an Apollo rule), a solar-storm shelter rule, and a live re-plan in the browser.',
+     `Tightest margin ${f0(sf.walkback.min_time_margin_min)} min and ${f0(sf.walkback.min_o2_margin_pct_of_capacity)} % of the O2 tank above reserve. Farthest point ${f0(sf.sep.max_walk_home_min)} min from shelter (limit ${f0(sf.sep.shelter_limit_min)} min).`],
+    ['Can the numbers be trusted?',
+     'A* is checked against Dijkstra, the browser against Python, the walking model against Apollo 14, and routes against real Perseverance drives.',
+     `A* and Dijkstra differ by ${V.astar_vs_dijkstra.max_rel_diff}. Apollo 14 uphill legs: model ${f2(V.apollo14_speed_check.mean_model_kmh)} vs measured ${f2(V.apollo14_speed_check.mean_measured_kmh)} km/h.` +
+     (drive ? ` Crater-floor drive: ${f0(100 * drive.options.balanced.share_of_planned_within_m['25'])} % of the planned path within 25 m of the rover's, vs ${f0(100 * drive.straight_line.share_of_planned_within_m['25'])} % for a straight line.` : '')],
+  ];
+  document.getElementById('glance-t').insertAdjacentHTML('beforeend', rows.map((r) => `<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join(''));
+}
+glance().catch((e) => { document.getElementById('glance-t').insertAdjacentHTML('afterend', '<p class="warn">Could not load the results file.</p>'); console.warn(e); });
 document.querySelectorAll('[data-md]').forEach((b) => b.onclick = () => show(b.dataset.md));
 show(location.hash === '#sources' ? 'DATA_SOURCES.md' : 'METHODS.md');
 </script>
