@@ -1,8 +1,47 @@
 # PROGRESS
 
-## Current status: Phase 4 (validate, polish, deploy): DONE. Next: Phase 5 (submission package), when Son says so.
+## Current status: improvement pass before judging: DONE (Sat 2026-11-14). Submission drafts are in `submission/`, waiting for Son's approval.
 
-**Live app:** https://sonctran.github.io/nasa/ · **Repo:** https://github.com/sonctran/nasa (public)
+**Live app:** https://sonctran.github.io/nasa/ · **Slides:** https://sonctran.github.io/nasa/demo_slides.pdf · **Repo:** https://github.com/sonctran/nasa (public)
+
+### Done in the improvement pass (Sat 2026-11-14)
+Goal: raise the score on Impact, Creativity, Validity, Relevance and Presentation, and make the project read better to IE recruiters. The planning math, the parameters and the data were **not** touched: `plan.json` is the Phase 4 file, so **no result number changed**. The layout, theme, fonts and tab names are the ones Son kept when he reverted the earlier redesign. Each item is its own commit and can be undone with `git revert <id>`.
+
+| # | What | Commit |
+|---|---|---|
+| 1 | **7 correctness fixes.** HUD "walk home now" used the old pace right after "Slow crew" (34 min shown, 49 min right). Tornado labels were cut off; bars now show their swing in minutes. Stop 3 was hidden behind stop 2. The no-go layer ignored the slope slider. Time axes stopped at 300 (limit 360). SEP violations were purple (text said red). A code comment and METHODS section 6 were out of date. | b331262 |
+| 2 | **The main IE trade-off is now on the first screen:** a chart of the four candidate plans (science points against chance of getting home on time, with the 95 % bar and the second walking model). "Why this matters" notes next to six key results. The optimization stated in plain words. All text is filled from `plan.json`. | 50fddba |
+| 3 | **First 10 seconds:** stop names on the map, a legend that folds away (folded on tablets), one plain sentence that says what the plan is. | 8424e70 |
+| 4 | **Readability:** route table, stop list and stop cards no longer wrap; sections separated. | 797749f |
+| 5 | **HUD:** playback starts on open, labels stay on screen, the alert no longer covers the north mark. | c18c124 |
+| 6 | **Methods page:** "method at a glance" table (six questions, method, result), filled from `plan.json`. | e0f622b |
+| 7 | **Submission package (drafts):** `project_page.md`, `demo_slides.pptx` + `.pdf` (7 slides, built by `scripts/build_deck.py`), `video_script.md`, `resume_bullets.md`, `CHECKLIST.md`. **README rewritten.** 6 new tests keep the story's numbers in step with `plan.json`. | 5cefe2a |
+
+### Evidence (improvement pass)
+| Check | Result |
+|---|---|
+| Tests | **pytest 172 passed** (166 + 6 new in `tests/test_submission.py`) |
+| Local click-through (`scripts/screenshot.py`, Chromium, 1440x900 and tablet 820x1180) | 15 panels, **0 console errors, 0 page errors, 0 failed requests, 0 HTTP errors**. Route on the map 0.27 s, plan ready 1.08 s, add-a-stop re-plan 229 ms. Tablet overflow 0 px. |
+| HUD re-plan | Slow crew 24 ms; solar-storm replay 144 ms; 39 min to shelter against the 60 min limit |
+| NO-GO still caught | Adding Hidden Harbor at the end: 36 pts, 345 min, 52.7 % on time, header turns NO-GO |
+| Site size | 13 MB (limit 40 MB), including the 2.4 MB slides PDF |
+| Live site, fresh browser, no login | **PASS** (commit 5cefe2a, deployed 00:53 UTC). `scripts/screenshot.py --url https://sonctran.github.io/nasa/` in a new Chromium profile: 15 panels, **0 console errors, 0 page errors, 0 failed requests, 0 HTTP errors**; route on the map 0.81 s, plan ready 1.63 s, add-a-stop re-plan 253 ms. Seen on the live page: the science-against-risk chart, stop names on the map, the new hint line, the Methods "at a glance" table (6 rows), and `demo_slides.pdf` (7 pages). Note: the push itself did not start the deploy workflow this time, so it was started by hand (Actions > Deploy site to GitHub Pages > Run workflow, run 5). Pushes that do not touch `site/` never redeploy; that is by design. |
+| Before and after pictures | `docs/screenshots/before_after/` (5 pairs) |
+
+### Numbers that changed
+- **Plan results: none.** 26 points, 3.05 km, 267 of 360 min, 98.2 %, all 9 checks pass, as in Phase 2-4.
+- **HUD walk-home time right after a "Slow crew" event: 34 → 49 min** in the click-through example (bug fix, DECISIONS T54).
+- **CP-SAT solve time is written 3-17 ms, was 3-16 ms** (rounding of 16.55 ms, DECISIONS T59).
+- **Test count: 166 → 172.**
+
+### Left for Son (before submitting)
+1. **Approve the submission text** in `submission/project_page.md` field by field. It is a draft. Check it against the real form's character limits.
+2. **Open the slides** (`submission/demo_slides.pptx`). If you edit them in PowerPoint, export the PDF again and copy it to `site/demo_slides.pdf`.
+3. **The word "safe"** in the header ("Plans a safe 6-hour...") is still your call (review item L26).
+4. **Firefox and Windows are still untested here.** Open the live link in Firefox once; run `pytest` once on your PC (also `pip install -r requirements.txt` again: `python-pptx` was added for the slides).
+5. **Stop names on the map** were part of the redesign you reverted. They are back because they help a first-time visitor most. If you do not want them: `git revert 8424e70`.
+6. The challenge's own wording was not re-read in this pass: the Relevance text follows SPEC.md. Compare `project_page.md` with the challenge page before you paste it.
+7. Open from Phase 4: phone width (390 px) overflows by 16 px; not a SPEC target. Review item L23 (HUD event at T+0:00 showing "EVA complete") could not be reproduced: it shows "walking".
 
 ### Done in Phase 4 (Sat 2026-11-14, ~1 h)
 - **Deploy:** `.github/workflows/pages.yml` publishes `site/` to GitHub Pages on every push to `claude/serene-sagan-hlltkr` (the repo's default branch). Son switched Pages on (Settings → Pages → Source: GitHub Actions); the workflow could not do it itself ("Resource not accessible by integration").
