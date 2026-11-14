@@ -453,7 +453,7 @@ function renderGo() {
 // ---------------------------------------------------------------- tabs
 function setupTabs() {
   document.querySelectorAll('nav.tabs button').forEach((b) => b.onclick = () => openTab(b.dataset.tab));
-  $('#btn-hud').onclick = () => A.hud?.open();
+  $('#btn-hud').onclick = () => A.hud?.open({ autoplay: true });
 }
 function openTab(id) {
   document.querySelectorAll('nav.tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === id)));

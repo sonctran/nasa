@@ -92,6 +92,8 @@ def main() -> int:
         page.locator("#pareto").scroll_into_view_if_needed()
         page.wait_for_timeout(300)
         shot("02_route_options_pareto")
+        page.locator("#alts tr[data-alt=safest]").click()        # switch the two options off again
+        page.locator("#alts tr[data-alt=fastest]").click()
 
         page.click("nav.tabs button[data-tab=schedule]")
         page.wait_for_timeout(300)
@@ -114,6 +116,7 @@ def main() -> int:
         page.locator("[data-drive='1']").click()
         page.wait_for_timeout(600)
         shot("07_checks_rover_validation")
+        page.click("#drive-clear")
 
         # layers: slope on, legend, cursor readout
         page.click("nav.tabs button[data-tab=plan]")
@@ -154,7 +157,8 @@ def main() -> int:
 
         # HUD
         page.click("#btn-hud")
-        page.evaluate("(()=>{const H=window.__marswalk.hud.state; H.T=H.track.end*0.18; window.__marswalk.hud.draw();})()")
+        page.evaluate("(()=>{const H=window.__marswalk.hud.state; H.playing=false; H.T=H.track.end*0.18; window.__marswalk.hud.draw();})()")
+        page.evaluate("document.querySelector('#hud-play').textContent = 'Play'")
         page.wait_for_timeout(300)
         rep["dom"]["hud"] = page.inner_text("#hud-stage")
         shot("11_hud_visor")

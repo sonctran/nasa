@@ -157,7 +157,10 @@ export function initHUD(A) {
       if (x < -20 || y < -20 || x > w + 20 || y > h + 20) continue;
       ctx.fillStyle = s.kind === 'habitat' ? '#56b4e9' : s.kind === 'depot' ? '#009e73' : '#e69f00';
       ctx.beginPath(); ctx.arc(x, y, 8, 0, 2 * Math.PI); ctx.fill();
-      ctx.fillStyle = '#eafff4'; ctx.font = 'bold 13px system-ui'; ctx.fillText(s.name.replace(/ \(.*\)/, ''), x + 11, y + 4);
+      // label on the left when it would run off the right edge of the visor
+      ctx.fillStyle = '#eafff4'; ctx.font = 'bold 13px system-ui';
+      const label = s.name.replace(/ \(.*\)/, ''), tw = ctx.measureText(label).width;
+      ctx.fillText(label, x + 11 + tw > w - 8 ? x - 11 - tw : x + 11, y + 4);
     }
     // crew
     ctx.fillStyle = '#f0e442'; ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
@@ -235,6 +238,7 @@ export function initHUD(A) {
       H.playing = true;
     }
     if (opts.at != null) H.T = opts.at;
+    if (opts.autoplay) H.playing = true;          // one click from the header shows the walk moving
     H.last = null; syncPlay();
     requestAnimationFrame(frame);
   }
