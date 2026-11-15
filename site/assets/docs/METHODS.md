@@ -45,7 +45,7 @@ The plan of record uses NASA numbers plus a muscle-efficiency value from Minetti
 
 **Speed.** The crew paces itself so its metabolic power stays at *P₀* ("constant-power pacing", assumption): `v = min(v₀, P₀ / e)`. So 2.0 km/h on level ground and downhill, 1.4 km/h at a 10 % grade, 1.1 km/h at 20 %, 0.9 km/h at 30 %.
 
-**Check against Apollo 14.** With lunar gravity and Apollo 14's own pace (2.47 km/h) and mean rate (354 W), the model predicts the five uphill walking legs of EVA-2 (grades 4.5–11.3 %) at a mean of **2.11 km/h vs 2.13 km/h measured**, mean absolute error 0.32 km/h per leg (`config/apollo14_table4.csv`, transcribed from Waligora & Horrigan Table 4). Individual legs scatter a lot. The Apollo authors themselves found "a very poor correlation between traverse rate and metabolic rate", which fits a crew that keeps a fairly steady work rate.
+**Check against Apollo 14.** With lunar gravity and Apollo 14's own pace (2.47 km/h) and mean rate (354 W), the model predicts the five uphill walking legs of EVA-2 (grades 4.5-11.3 %) at a mean of **2.11 km/h vs 2.13 km/h measured**, mean absolute error 0.32 km/h per leg (`config/apollo14_table4.csv`, transcribed from Waligora & Horrigan Table 4). Individual legs scatter a lot. The Apollo authors themselves found "a very poor correlation between traverse rate and metabolic rate", which fits a crew that keeps a fairly steady work rate.
 
 **One consequence to know.** Under constant-power pacing, walking energy = *P₀* × walking time. So the **fastest route is also the lowest-energy route**. The real trade-off the planner shows is **time against hazard**. "Lowest-energy" is kept in the table, but it is the same route as "Fastest".
 
@@ -65,22 +65,22 @@ The plan of record uses NASA numbers plus a muscle-efficiency value from Minetti
 - **Edge cost** (one number per step, in "equivalent level metres"):
   `c = w_t · T/T_ref + w_E · E/E_ref + w_H · (T · h̄)/T_ref + w_D · L`, where *T* = step time, *E* = step energy, *h̄* = mean hazard of the two cells, *L* = map length, and *T_ref*, *E_ref* = time and energy per metre on level ground. On flat safe ground with `w_t + w_E = 1`, a step costs exactly its length.
 - **A\*** (Python reference, `planner/astar.py`). Heuristic = straight-line distance × the smallest cost per metre of any step in the graph. It never over-estimates, so A\* returns the true optimum.
-- **Tests.** On 12 random grids (60 start/goal pairs each), A\* cost equals networkx Dijkstra exactly. On the real Jezero grid it equals scipy Dijkstra (relative difference **0.0** on all 5 legs of the plan). A plan leg takes A\* 4–19 ms.
+- **Tests.** On 12 random grids (60 start/goal pairs each), A\* cost equals networkx Dijkstra exactly. On the real Jezero grid it equals scipy Dijkstra (relative difference **0.0** on all 5 legs of the plan). A plan leg takes A\* 4-19 ms.
 - **Route options** (same stops, different weights `w_t, w_E, w_H, w_D`): **Fastest** (1,0,0,0), **Lowest-energy** (0,1,0,0, identical to Fastest, see §3), **Safest** (0.05, 0.05, 0.9, 0), **Balanced** (⅓, ⅓, ⅓, 0, the plan of record) and **Shortest distance** (0,0,0,1), a naive baseline that ignores slope and hazard.
 - **Pareto sweep.** The hazard weight goes from 0 to 0.95 in steps of 0.05 (time weight = 1 − w_H). 20 weightings give **14 distinct non-dominated routes** on walking time vs hazard.
 
 ## 5. Choosing stops and their order (operations research)
 
-- **Sites.** The habitat sits on the flattest 110 m × 110 m pad of the crater floor 900–1100 m east of the depot (rule: DECISIONS T29). Pad max slope 3.3°, 927 m from the depot. The depot point is the mean rover position over the 10 tube drops (PDS). Science stops are **six real Perseverance sites**: five sample-coring sites, with lat/lon from the PDS *Mars 2020 Initial Reports*, and one boulder-field image site (`config/stops.yaml`). Each core site lands on our 1 m DTM within 0.03–0.28 m of the published elevation.
+- **Sites.** The habitat sits on the flattest 110 m × 110 m pad of the crater floor 900-1100 m east of the depot (rule: DECISIONS T29). Pad max slope 3.3°, 927 m from the depot. The depot point is the mean rover position over the 10 tube drops (PDS). Science stops are **six real Perseverance sites**: five sample-coring sites, with lat/lon from the PDS *Mars 2020 Initial Reports*, and one boulder-field image site (`config/stops.yaml`). Each core site lands on our 1 m DTM within 0.03-0.28 m of the published elevation.
 - **Science value** = Son's rubric: fine-grained layered rock 10, delta layer sequence 6, transported boulders 4. Which category each site gets is our reading of the quoted PDS/NASA text (DECISIONS T30, for Son to review).
 - **Work times** (assumptions): depot pickup 50 min, fine-grained rock 45 min, layer sequence 30 min, boulders 20 min.
 - **Model.** A prize-collecting **Orienteering Problem**: start and end at the habitat, must visit the depot, choose optional stops to maximise points. Constraints: walking + work time ≤ time budget, and O₂ ≤ tank × (1 − 15 % reserve). Travel times come from the Balanced route between every pair of sites (Dijkstra, 8 × 8 matrix).
-- **Solver.** Google **OR-Tools CP-SAT** with a circuit constraint. It proves optimality: every plan is marked `OPTIMAL`, in 3–17 ms. The OR-Tools routing heuristic (guided local search) was tried first. It missed the true optimum on 2 of 10 random test cases, so it was replaced (DECISIONS T31). A test compares CP-SAT with brute force (all subsets × all orders) on 25 random instances, and they match.
+- **Solver.** Google **OR-Tools CP-SAT** with a circuit constraint. It proves optimality: every plan is marked `OPTIMAL`, in 3-17 ms. The OR-Tools routing heuristic (guided local search) was tried first. It missed the true optimum on 2 of 10 random test cases, so it was replaced (DECISIONS T31). A test compares CP-SAT with brute force (all subsets × all orders) on 25 random instances, and they match.
 - **SEP rule as a filter.** Stops more than 60 min (assumption) from the habitat's shelter are not offered to the optimiser. This removes the two delta-top stops (81 and 88 min away). Turning the rule off does not change the 6-hour optimum: the delta top is out of reach in 6 h anyway.
 
 ## 6. Robust plan (Monte Carlo + ranking)
 
-- The optimiser is run with time budgets of 70–100 % of the 6 h limit. Each budget gives one candidate plan.
+- The optimiser is run with time budgets of 70-100 % of the 6 h limit. Each budget gives one candidate plan.
 - Each candidate is simulated **20,000 times**. Each run draws a crew walking-speed factor and a metabolic-rate factor (one each per run), plus a work-time factor for each stop. All are log-normal with median 1, with σ = 0.15, 0.20 and 0.30 (assumptions). A slower crew takes longer to walk but is assumed to use the same walking energy (and O₂) per metre; a task that runs long does use more O₂ (assumptions).
 - **Robust plan** = the plan with the most science whose chance of getting home within 6 h, with O₂ above reserve, is at least **95 %** (Son's upgrade S4).
 
@@ -89,11 +89,11 @@ The plan of record uses NASA numbers plus a muscle-efficiency value from Minetti
 | 252 min | Amalik, Hidden Harbor, depot | 20 | 230 min | 99.8 % |
 | **270 min** | **Amalik, Wildcat Ridge, Skinner Ridge, depot** | **26** | **267 min** | **98.2 %** ← Robust plan |
 | 288 min | Amalik, Hidden Harbor, Wildcat Ridge, depot | 30 | 286 min | 94.96 % (just under 95 %) |
-| 324–360 min | Amalik, Hidden Harbor, Wildcat Ridge, Skinner Ridge, depot | 36 | 317 min | 79.7 % ← Max-science plan |
+| 324-360 min | Amalik, Hidden Harbor, Wildcat Ridge, Skinner Ridge, depot | 36 | 317 min | 79.7 % ← Max-science plan |
 
 **The 95 % line falls between the 26- and 30-point plans.** With the efficiency at 0.25 (before Minetti was verified), the 30-point plan scored 95.02 %. With the measured 0.243 it scores 94.96 % ± 0.15 %. The Tobler + Minetti check model gives it 95.9 % (§3b). Treat 26 vs 30 points as a close call for Son, not a clear answer. The app should show both. Going to 36 points is clearly risky (80 %).
 
-- **Tornado chart** (each input at its 10th and 90th percentile, the others at median; base 267 min). EVA length swings by: depot work time 39 min; walking speed 38 min; Amalik and Wildcat Ridge work 35 min each; Skinner Ridge work 24 min. Metabolic rate changes O₂ use (0.32–0.53 kg), not time. **Work time, not walking, drives the risk.** Walking is only 97 of the 267 planned minutes.
+- **Tornado chart** (each input at its 10th and 90th percentile, the others at median; base 267 min). EVA length swings by: depot work time 39 min; walking speed 38 min; Amalik and Wildcat Ridge work 35 min each; Skinner Ridge work 24 min. Metabolic rate changes O₂ use (0.32-0.53 kg), not time. **Work time, not walking, drives the risk.** Walking is only 97 of the 267 planned minutes.
 
 ## 7. Safety rules
 
@@ -121,8 +121,8 @@ The plan of record uses NASA numbers plus a muscle-efficiency value from Minetti
 
 | Drive | Rover | Planned | Planned within 25 m of rover | Straight line within 25 m | Median offset (planned / straight) |
 |---|---|---|---|---|---|
-| Crater floor → delta front (sols 399–409) | 1,995 m | 1,966 m | **53 %** | 38 % | 20 m / 35 m |
-| Delta-top climb (sols 708–721) | 1,860 m | 1,447 m | 36 % | 30 % | 55 m / 48 m |
+| Crater floor → delta front (sols 399-409) | 1,995 m | 1,966 m | **53 %** | 38 % | 20 m / 35 m |
+| Delta-top climb (sols 708-721) | 1,860 m | 1,447 m | 36 % | 30 % | 55 m / 48 m |
 
 On the crater floor the planner follows the rover clearly better than a straight line. On the delta-top climb, both routes use the same gap through the first scarp. After that, the rover swung far north-east while our planner went direct, through ground our 1 m DTM rates safe. The result is **inconclusive**: the planner is barely better than a straight line within 25 m and slightly worse within 50 m (49 % vs 51 %). Likely reasons, not checked: rover-only limits (sand ripples, rocks smaller than the DTM can show), driving-planning rules, and science targets along the way.
 

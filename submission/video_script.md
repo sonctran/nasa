@@ -11,7 +11,7 @@ No NASA logos, flags or mission patches on screen. Keep the map credit line visi
 | 0:05-0:10 | The header, then the green GO chip | "This is Marswalk Ops. It plans a six-hour walk on Mars and tells you the odds of getting home." |
 | 0:10-0:15 | Slope layer on, then the science-against-risk chart | "It reads real NASA terrain, finds the safe ground, and picks the best science stops with an exact optimizer." |
 | 0:15-0:20 | Add a stop; the chip turns red NO-GO. Then press HUD mode, press "Solar storm alert" | "Twenty thousand simulated walks measure the risk. If a solar storm hits, it re-plans in under a second." |
-| 0:20-0:30 | The Checks tab, then back to the map. Text: "sonctran.github.io/nasa" | "Next: rover-assisted walks and real Mars suit data. Because on Mars, the best map is a plan you can trust." |
+| 0:20-0:30 | The Checks tab, then back to the map. Text: "sonctran.github.io/nasa" | "Next: rover-assisted walks and real Mars suit data. Try it at sonctran.github.io/nasa." |
 
 ## Shot notes
 

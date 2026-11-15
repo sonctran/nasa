@@ -151,7 +151,7 @@ Code (`planner/`): `grid.py` (10 m browser grid, 16-connected moves, no corner c
 - **Radiation (Gale proxy):** 39 µGy for the EVA; the May 2024 event would have been 8,100 µGy.
 - **Go/No-Go:** all 9 pass.
 - **Validation:**
-  - A* = Dijkstra exactly; CP-SAT = brute force on 25 cases; every plan solved to proven optimality in 3–17 ms.
+  - A* = Dijkstra exactly; CP-SAT = brute force on 25 cases; every plan solved to proven optimality in 3-17 ms.
   - Slope: 10 m max 15.7°. On the 2 m grid the max is 20.01°, with 0.07 % of points just over 20° (near Skinner Ridge).
   - Rover drives: crater floor 53 % within 25 m (straight line 38 %); delta-top 36 % (straight 30 %): inconclusive.
   - Apollo 14 uphill speeds: model 2.11 vs measured 2.13 km/h.

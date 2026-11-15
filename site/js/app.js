@@ -161,7 +161,7 @@ function layerControl() {
     onAdd() {
       const d = L.DomUtil.create('div', 'mctl');
       L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
-      let html = '<button class="toggle" type="button" aria-label="Hide layers">–</button><h4>Layers</h4><div class="body">';
+      let html = '<button class="toggle" type="button" aria-label="Hide layers">-</button><h4>Layers</h4><div class="body">';
       for (const [id, r] of Object.entries(A.raster)) {
         html += `<div class="lyr"><label title="${esc(r.lyr.processing || '')}"><input type="checkbox" data-r="${id}" ${r.on ? 'checked' : ''}> ${esc(r.lyr.title)} ${B(r.lyr.kind)}</label>
                  <input type="range" min="0" max="1" step="0.05" value="${r.opacity}" data-op="${id}" aria-label="${esc(r.lyr.title)} opacity"></div>`;
@@ -174,7 +174,7 @@ function layerControl() {
       html += '</div>';
       d.innerHTML = html;
       const tg = d.querySelector('.toggle');
-      tg.onclick = () => { d.classList.toggle('collapsed'); tg.textContent = d.classList.contains('collapsed') ? '+' : '–'; };
+      tg.onclick = () => { d.classList.toggle('collapsed'); tg.textContent = d.classList.contains('collapsed') ? '+' : '-'; };
       d.querySelectorAll('[data-r]').forEach((cb) => cb.onchange = () => {
         const r = A.raster[cb.dataset.r]; r.on = cb.checked;
         r.on ? r.o.addTo(A.map) : r.o.remove();
@@ -238,7 +238,7 @@ function legendControl() {
 function updateLegend() {
   const d = $('#legend');
   if (!d) return;
-  let html = `<button class="toggle" type="button" aria-expanded="${!A.legendFolded}" aria-label="${A.legendFolded ? 'Show' : 'Hide'} the legend">${A.legendFolded ? '+' : '–'}</button><h4>Legend</h4><div class="body">`;
+  let html = `<button class="toggle" type="button" aria-expanded="${!A.legendFolded}" aria-label="${A.legendFolded ? 'Show' : 'Hide'} the legend">${A.legendFolded ? '+' : '-'}</button><h4>Legend</h4><div class="body">`;
   for (const id of ['elevation', 'slope', 'roughness']) {
     const r = A.raster[id];
     if (!r.on || !r.lyr.legend) continue;

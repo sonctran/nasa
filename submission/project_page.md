@@ -12,7 +12,7 @@ Marswalk Ops
 
 ## High-Level Project Summary
 
-Marswalk Ops is a web tool that plans a six-hour, two-astronaut walk on Mars and tells the crew how likely they are to get home on time. It uses real NASA data for Jezero Crater: a 1 m HiRISE elevation model, a 25 cm HiRISE image mosaic, Perseverance's real path and photos, and the Three Forks sample-tube depot. The tool finds where it is safe to walk, picks which science stops to visit and in what order with an exact optimizer, checks nine safety rules, and runs 20,000 simulated EVAs to measure the risk. The recommended plan collects 26 science points and gets home on time in 98.2 % of the simulated runs. A helmet-view mode plays the walk back and re-plans in under a second when a solar storm alert, a slow crew or a suit oxygen fault happens. A map shows the ground. A plan has to answer the planner's real question: which plan is worth the risk?
+Marswalk Ops is a web tool that plans a six-hour, two-astronaut walk on Mars and tells the crew how likely they are to get home on time. It uses real NASA data for Jezero Crater: a 1 m HiRISE elevation model, a 25 cm HiRISE image mosaic, Perseverance's real path and photos, and the Three Forks sample-tube depot. The tool finds where it is safe to walk, picks which science stops to visit and in what order with an exact optimizer, checks nine safety rules, and runs 20,000 simulated EVAs to measure the risk. The recommended plan collects 26 science points and gets home on time in 98.2 % of the simulated runs. A helmet-view mode plays the walk back and re-plans in under a second when a solar storm alert, a slow crew or a suit oxygen fault happens. The question it answers is which plan is worth the risk.
 
 ## Link to Project Demo
 
@@ -72,7 +72,7 @@ You open the page and see a route on a real image of Jezero Crater, with a GO or
 
 ### Benefits
 
-- **For mission planners:** a plan that comes with a number for its risk, not only a line on a map.
+- **For mission planners:** a plan that comes with a number for its risk.
 - **For crews:** a clear go/no-go, the point where the margin is tightest, and a new plan in under a second when the day changes.
 - **For students and the public:** a hands-on way to see why a Marswalk is an operations problem.
 
