@@ -121,7 +121,6 @@ blockquote { margin: 6px 0; padding: 4px 10px; border-left: 3px solid var(--oran
 .habicon { width: 26px; height: 26px; border-radius: 5px; background: var(--sky); color: #111; display: grid; place-items: center; font-weight: 800; border: 2px solid #111; box-shadow: 0 0 0 2px #fff; }
 .wpicon { width: 16px; height: 16px; border-radius: 50%; background: var(--yellow); border: 2px solid #111; box-shadow: 0 0 0 2px #fff; }
 .mapmode { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 800; background: var(--yellow); color: #111; padding: 5px 12px; border-radius: 6px; font-weight: 600; }
-.loading { position: absolute; inset: 0; display: grid; place-items: center; z-index: 900; pointer-events: none; }
 
 /* ---------- HUD (helmet visor view) */
 #hud { position: fixed; inset: 0; z-index: 2000; background: #000; color: #eafff4; font-family: var(--font); display: grid; grid-template-rows: auto 1fr auto; }

@@ -14,7 +14,7 @@ export function initHUD(A) {
   const slopeCaution = pv('hazard.slope_caution_deg');
   const img = new Image();
   img.src = 'assets/layers/ortho.jpg';
-  const H = { open: false, playing: false, T: 0, speed: 180, last: null, track: null, events: [], f: { speed: 1, work: 1, o2: 1 } };
+  const H = { open: false, playing: false, T: 0, speed: 180, last: null, track: null, f: { speed: 1, work: 1, o2: 1 } };
 
   // ------------------------------------------------------------ track = keyframes {t, xy, o2, back_s, idx}
   function trackFromPlan() {
@@ -112,7 +112,6 @@ export function initHUD(A) {
         <br>Home at T+${fmtT(res.end_min * 60)} (limit ${fmtT(limitS)}), O2 left ${res.o2_left_pct.toFixed(0)} % (reserve ${Math.round(100 * reserve / cap)} %).`;
       showAlert('info', 'RE-PLANNED');
     }
-    H.events.push({ kind, at: T, ms: wall });
     const box = $('#hud-replan'); box.innerHTML = msg; box.hidden = false;
     A.lastReplan = { kind, ms: wall, worker_ms: res.ms, stops: res.stops };
     draw_();
@@ -208,7 +207,7 @@ export function initHUD(A) {
   }
   function syncPlay() { $('#hud-play').textContent = H.playing ? 'Pause' : (H.track && H.T >= H.track.end ? 'Replay' : 'Play'); }
   function reset() {
-    H.track = trackFromPlan(); H.T = 0; H.f = { speed: 1, work: 1, o2: 1 }; H.events = [];
+    H.track = trackFromPlan(); H.T = 0; H.f = { speed: 1, work: 1, o2: 1 };
     $('#hud-replan').hidden = true; $('#hud-alert').hidden = true; H.sepAt = null;
   }
 

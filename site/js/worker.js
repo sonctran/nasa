@@ -124,10 +124,6 @@ const handlers = {
     rp.mode = mode;
     return rp;
   },
-  cellInfo({ x, y }) {
-    const i = E.xyToIdx(S.grid, x, y);
-    return { elev: S.grid.elev[i], slope: S.grid.slope[i], rough: S.grid.rough[i], passable: !!S.model.passable[i] };
-  },
 };
 
 self.onmessage = (ev) => {

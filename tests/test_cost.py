@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from pipeline.common import load_params
-from planner.cost import EdgeCosts, HumanModel, edge_costs, hazard_index, scalar_weight
+from planner.cost import HumanModel, edge_costs, hazard_index, scalar_weight
 from planner.grid import Terrain, build_edges
 
 P = load_params()

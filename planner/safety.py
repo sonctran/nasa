@@ -34,11 +34,6 @@ def walkback_field(edges: EdgeSet, time_w: np.ndarray, energy_w: np.ndarray, hom
     return {"time_s": dist.reshape(H, W), "energy_j": energy.reshape(H, W)}
 
 
-def o2_kg(energy_j, kj_per_l_o2: float, o2_g_per_l: float):
-    """Oxygen burned for a metabolic energy (indirect calorimetry: energy per litre of O2)."""
-    return np.asarray(energy_j) / (kj_per_l_o2 * 1000.0) * o2_g_per_l / 1000.0
-
-
 def checklist(items: list[tuple[str, bool, str]]) -> dict:
     rows = [{"rule": r, "pass": bool(ok), "detail": d} for r, ok, d in items]
     return {"go": all(r["pass"] for r in rows), "items": rows}

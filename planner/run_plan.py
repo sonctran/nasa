@@ -18,24 +18,22 @@ Steps
 from __future__ import annotations
 
 import csv
-import itertools
 import json
 import math
 import time
-from pathlib import Path
 
 import numpy as np
 import yaml
 
-from pipeline.common import PREVIEWS, PROCESSED, ROOT, SITE_DATA, grid_from_params, load_params
+from pipeline.common import PROCESSED, ROOT, SITE_DATA, grid_from_params, load_params
 
 from . import validate
 from .astar import astar, dijkstra_tree, min_cost_per_metre, path_edges, tree_path
 from .cost import HumanModel, edge_costs, hazard_index, pv, scalar_weight
 from .grid import build_edges, load_terrain, passable_mask, to_csgraph
 from .montecarlo import PlanProfile, simulate, summarise, tornado
-from .safety import checklist, o2_kg, walkback_field
-from .stops_ortools import Instance, evaluate, solve_ortools
+from .safety import checklist, walkback_field
+from .stops_ortools import Instance, solve_ortools
 
 STOPS_FILE = ROOT / "config" / "stops.yaml"
 APOLLO_FILE = ROOT / "config" / "apollo14_table4.csv"

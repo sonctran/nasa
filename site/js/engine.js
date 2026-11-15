@@ -80,7 +80,6 @@ export function ePerM(hm, g) {
   const lift = hm.mass * hm.gravity * sinT;
   return hm.p0 / hm.v0 + (sinT > 0 ? lift / hm.eta : hm.downCredit * lift);
 }
-export function speed(hm, g) { return Math.min(hm.v0, hm.p0 / ePerM(hm, g)); }
 
 // ---------------------------------------------------------------- model = terrain + rules + edges
 // opts: {slopeNogo, roughNogo, slopeCaution, roughCaution, keepout (Uint8Array or null)}
@@ -313,13 +312,6 @@ export function walkHomeField(model, home) {
     energy[i] = edge(model, nextK[i], i).e + energy[next[i]];
   }
   return { time_s: time, energy_j: energy, next };
-}
-
-export function pathHome(field, from) {
-  if (!Number.isFinite(field.time_s[from])) return [];
-  const p = [from];
-  while (field.next[p[p.length - 1]] >= 0) p.push(field.next[p[p.length - 1]]);
-  return p;
 }
 
 // ---------------------------------------------------------------- plan evaluation (run_plan.timeline + safety_checks)
